@@ -212,6 +212,29 @@
 }
 
 /* =====================
+   Background utilities
+   ===================== */
+@layer utilities {
+  /* Hexagon grid — subtle tiling pattern */
+  .bg-hex-grid {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104' viewBox='0 0 60 104'%3E%3Cpolygon points='30,2 58,17 58,47 30,62 2,47 2,17' fill='none' stroke='oklch(0.82 0.18 200 / 0.06)' stroke-width='0.8'/%3E%3Cpolygon points='30,54 58,69 58,99 30,104 2,99 2,69' fill='none' stroke='oklch(0.82 0.18 200 / 0.06)' stroke-width='0.8'/%3E%3Cpolygon points='-30,2 -2,17 -2,47 -30,62' fill='none' stroke='oklch(0.82 0.18 200 / 0.06)' stroke-width='0.8'/%3E%3Cpolygon points='90,2 118,17 118,47 90,62' fill='none' stroke='oklch(0.82 0.18 200 / 0.06)' stroke-width='0.8'/%3E%3C/svg%3E");
+    background-size: 60px 104px;
+  }
+
+  /* Circuit board line pattern */
+  .bg-circuit {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='oklch(0.82 0.18 200 / 0.12)' stroke-width='0.6'%3E%3Cpath d='M20 20 L80 20 L80 80 L140 80 L140 20 L180 20'/%3E%3Cpath d='M0 60 L40 60 L40 100 L100 100 L100 140 L200 140'/%3E%3Cpath d='M60 0 L60 40 L120 40 L120 160 L60 160 L60 200'/%3E%3Cpath d='M160 0 L160 40 L180 40'/%3E%3Ccircle cx='80' cy='20' r='2.5' fill='oklch(0.82 0.18 200 / 0.2)'/%3E%3Ccircle cx='140' cy='80' r='2.5' fill='oklch(0.82 0.18 200 / 0.2)'/%3E%3Ccircle cx='40' cy='60' r='2.5' fill='oklch(0.82 0.18 200 / 0.2)'/%3E%3Ccircle cx='100' cy='100' r='2.5' fill='oklch(0.82 0.18 200 / 0.2)'/%3E%3Ccircle cx='120' cy='40' r='2.5' fill='oklch(0.62 0.22 295 / 0.2)'/%3E%3Ccircle cx='60' cy='160' r='2.5' fill='oklch(0.62 0.22 295 / 0.2)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+
+  /* CSS noise/grain texture */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+}
+
+/* =====================
    Keyframe animations
    ===================== */
 @keyframes shimmer {
@@ -243,6 +266,45 @@
 @keyframes border-glow {
   0%, 100% { border-color: oklch(var(--neon-cyan) / 0.6); }
   50% { border-color: oklch(var(--neon-violet) / 0.6); }
+}
+
+@keyframes aurora-drift {
+  0%, 100% { transform: translateX(0px) translateY(0px); }
+  33% { transform: translateX(60px) translateY(-20px); }
+  66% { transform: translateX(-40px) translateY(15px); }
+}
+
+@keyframes circuit-trace {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.06; }
+}
+
+@keyframes glitch {
+  0%, 88%, 100% {
+    transform: translateX(0);
+    clip-path: none;
+    filter: none;
+  }
+  92% {
+    transform: translateX(-2px);
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    filter: drop-shadow(2px 0 oklch(var(--neon-cyan) / 0.8));
+  }
+  94% {
+    transform: translateX(2px);
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    filter: drop-shadow(-2px 0 oklch(var(--neon-violet) / 0.8));
+  }
+  96% {
+    transform: translateX(-1px);
+    clip-path: none;
+    filter: drop-shadow(1px 0 oklch(var(--neon-cyan) / 0.5));
+  }
+}
+
+.glitch-text {
+  animation: glitch 6s infinite;
+  display: inline-block;
 }
 
 @keyframes accordion-down {

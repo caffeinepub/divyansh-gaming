@@ -1,44 +1,36 @@
-# DIVYANSH GAMING — Car Racing Game
+# DIVYANSH GAMING
 
 ## Current State
-A gaming website for "DIVYANSH GAMING" with:
-- Hero section with branding
-- Games showcase section (5 games listed)
-- Leaderboard section
-- News section
-- Footer
-- Backend: stores games, leaderboard entries, news posts
+The site has a dark cyberpunk aesthetic with:
+- A static hero background image with a plain gradient overlay
+- A simple CSS grid pattern and scanlines on the hero
+- 40 floating particles in the hero section
+- Solid flat dark backgrounds on all other sections (games, leaderboard, news, footer)
+- Basic radial blur glows in section corners
 
 ## Requested Changes (Diff)
 
 ### Add
-- A fully playable browser-based car racing game embedded directly in the website
-- The game features:
-  - A player car controlled with arrow keys or WASD
-  - Oncoming traffic/obstacle cars that scroll toward the player
-  - Score counter that increases over time
-  - Speed increases over time making it harder
-  - Lives/health system (3 lives, lose one on collision)
-  - Game Over screen with final score and restart button
-  - High score tracking (stored in backend leaderboard with player name "Divyansh Gamer")
-  - Racing track with lane markings, scrolling road effect
-- A new "Race" nav link pointing to the racing game section
-- A dedicated "Play Now" button in the games section that scrolls to the racing game
-- Backend: new leaderboard entry type for racing scores
+- Animated hex grid pattern as a persistent full-page background layer
+- Moving beam/streak lights that sweep across the background
+- Pulsing radial aura/orb effects layered behind all sections
+- A noise/grain texture overlay for depth
+- Parallax depth lines that subtly animate on scroll
+- Glowing circuit board trace lines on section transitions
+- More immersive per-section background differentiation (each section gets a unique ambient glow color treatment)
+- Animated grid that shifts/distorts on the hero for a holographic look
 
 ### Modify
-- App.tsx: Add RacingGame section between GamesSection and LeaderboardSection
-- Navbar: Add "Race" link
-- The existing "Hyperdrive X" game card should link to the racing game section
-- Footer games list: add "Car Racing"
+- `index.css`: Add new keyframe animations for hex pulse, beam sweep, circuit trace, and aurora drift
+- `App.tsx`: Replace `ParticleField` with a richer `AnimatedBackground` component that includes hex grid + orbs + beams. Apply unique per-section background treatments.
+- All section backgrounds: richer gradient stops with more depth, less flat
 
 ### Remove
-- Nothing removed
+- Nothing removed — all existing content retained
 
 ## Implementation Plan
-1. Build a Canvas-based car racing game component (RacingGame) in React using useRef + requestAnimationFrame
-2. Game mechanics: scrolling road, player car movement, enemy car spawning, collision detection, score/lives system
-3. Wire score submission to backend leaderboard on game over
-4. Add RacingGame section to App.tsx with proper id anchor
-5. Update Navbar to include "Race" link
-6. Style consistently with the existing dark gaming aesthetic (neon colors, OKLCH tokens)
+1. Add new CSS keyframe animations and background utility classes to `index.css`
+2. Replace `ParticleField` with a full-viewport `AnimatedBackground` component (hex grid, pulsing orbs, beam sweeps, particles combined)
+3. Apply a persistent animated background layer that sits behind all page content
+4. Give each section a richer background treatment with unique color temperament
+5. Validate build passes

@@ -25,6 +25,7 @@ import {
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
+import MiniGamesSection from "./components/MiniGamesSection";
 import RacingGame from "./components/RacingGame";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
 
@@ -176,21 +177,212 @@ const FALLBACK_NEWS: NewsPost[] = [
   },
 ];
 
-// ─── Particle Background ─────────────────────────────────────────────────────
-function ParticleField() {
-  const particles = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    duration: Math.random() * 6 + 4,
-    delay: Math.random() * 4,
-    opacity: Math.random() * 0.5 + 0.1,
-  }));
+// ─── Animated Background ─────────────────────────────────────────────────────
+const PARTICLES = Array.from({ length: 25 }, (_, i) => ({
+  id: i,
+  x: (i * 13.7 + 7) % 100,
+  y: (i * 19.3 + 11) % 100,
+  size: (i % 3) * 1.5 + 1.5,
+  duration: (i % 5) * 1.5 + 5,
+  delay: (i % 7) * 0.6,
+  opacity: (i % 4) * 0.08 + 0.12,
+  color:
+    i % 3 === 0
+      ? "oklch(var(--neon-cyan))"
+      : i % 3 === 1
+        ? "oklch(var(--neon-violet))"
+        : "oklch(var(--neon-green))",
+}));
 
+const BEAM_CONFIGS = [
+  {
+    id: "beam-1",
+    delay: 0,
+    duration: 9,
+    gradient:
+      "linear-gradient(105deg, transparent 0%, oklch(var(--neon-cyan) / 0.06) 50%, transparent 100%)",
+    width: "60vw",
+    height: "100vh",
+  },
+  {
+    id: "beam-2",
+    delay: 3,
+    duration: 11,
+    gradient:
+      "linear-gradient(105deg, transparent 0%, oklch(var(--neon-violet) / 0.04) 50%, transparent 100%)",
+    width: "50vw",
+    height: "100vh",
+  },
+  {
+    id: "beam-3",
+    delay: 6,
+    duration: 8,
+    gradient:
+      "linear-gradient(105deg, transparent 0%, oklch(var(--neon-cyan) / 0.04) 50%, transparent 100%)",
+    width: "40vw",
+    height: "100vh",
+  },
+];
+
+const HERO_STREAKS = [
+  {
+    id: "streak-1",
+    delay: 0.5,
+    duration: 6,
+    color: "oklch(var(--neon-cyan) / 0.07)",
+    top: "10%",
+  },
+  {
+    id: "streak-2",
+    delay: 2,
+    duration: 7,
+    color: "oklch(var(--neon-violet) / 0.05)",
+    top: "40%",
+  },
+  {
+    id: "streak-3",
+    delay: 3.5,
+    duration: 5,
+    color: "oklch(var(--neon-cyan) / 0.05)",
+    top: "70%",
+  },
+];
+
+function AnimatedBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}
+    >
+      {/* Layer 1 — Hex grid breathing */}
+      <motion.div
+        className="absolute inset-0 bg-hex-grid"
+        animate={{ opacity: [0.4, 0.7, 0.4] }}
+        transition={{
+          duration: 6,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Layer 2 — Aurora orbs */}
+      {/* Top-left cyan orb */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          top: "-10%",
+          left: "-5%",
+          width: 700,
+          height: 700,
+          background:
+            "radial-gradient(circle, oklch(var(--neon-cyan) / 0.12) 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+        animate={{
+          x: [-40, 60, -40],
+          y: [-20, 30, -20],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+      {/* Top-right violet orb */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          top: "-8%",
+          right: "-8%",
+          width: 600,
+          height: 600,
+          background:
+            "radial-gradient(circle, oklch(var(--neon-violet) / 0.10) 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+        animate={{
+          x: [30, -60, 30],
+          y: [-10, 40, -10],
+        }}
+        transition={{
+          duration: 15,
+          delay: 3,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+      {/* Bottom-center green orb */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          bottom: "-10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 800,
+          height: 500,
+          background:
+            "radial-gradient(ellipse, oklch(var(--neon-green) / 0.06) 0%, transparent 70%)",
+          filter: "blur(60px)",
+        }}
+        animate={{
+          x: [-50, 50, -50],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+      {/* Center gold orb */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          top: "40%",
+          left: "45%",
+          width: 400,
+          height: 400,
+          background:
+            "radial-gradient(circle, oklch(var(--gold) / 0.05) 0%, transparent 70%)",
+          filter: "blur(50px)",
+        }}
+        animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.15, 1] }}
+        transition={{
+          duration: 10,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Layer 3 — Diagonal beam sweeps */}
+      {BEAM_CONFIGS.map((beam) => (
+        <motion.div
+          key={beam.id}
+          className="absolute top-0 bottom-0"
+          style={{
+            width: beam.width,
+            height: beam.height,
+            background: beam.gradient,
+            skewX: "-15deg",
+            transformOrigin: "center",
+          }}
+          animate={{ x: ["-200%", "250%"] }}
+          transition={{
+            duration: beam.duration,
+            delay: beam.delay,
+            repeat: Number.POSITIVE_INFINITY,
+            repeatDelay: 4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Layer 4 — Particles */}
+      {PARTICLES.map((p) => (
         <motion.div
           key={p.id}
           className="absolute rounded-full"
@@ -199,16 +391,13 @@ function ParticleField() {
             top: `${p.y}%`,
             width: p.size,
             height: p.size,
-            background:
-              p.id % 2 === 0
-                ? "oklch(var(--neon-cyan))"
-                : "oklch(var(--neon-violet))",
+            background: p.color,
             opacity: p.opacity,
           }}
           animate={{
-            y: [0, -30, 0],
-            opacity: [p.opacity, p.opacity * 0.3, p.opacity],
-            scale: [1, 1.5, 1],
+            y: [0, -35, 0],
+            opacity: [p.opacity, p.opacity * 0.25, p.opacity],
+            scale: [1, 1.8, 1],
           }}
           transition={{
             duration: p.duration,
@@ -218,6 +407,12 @@ function ParticleField() {
           }}
         />
       ))}
+
+      {/* Layer 5 — Scanlines */}
+      <div className="absolute inset-0 bg-scanlines opacity-20" />
+
+      {/* Layer 6 — Circuit overlay */}
+      <div className="absolute inset-0 bg-circuit" style={{ opacity: 0.035 }} />
     </div>
   );
 }
@@ -244,6 +439,11 @@ function Navbar() {
       label: "Race",
       href: "#race",
       icon: <Car className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Mini Games",
+      href: "#mini-games",
+      icon: <Gamepad2 className="w-3.5 h-3.5" />,
     },
     {
       label: "Leaderboard",
@@ -396,10 +596,29 @@ function HeroSection() {
 
       {/* Grid overlay */}
       <div className="absolute inset-0 bg-grid opacity-40" />
-      <div className="absolute inset-0 bg-scanlines opacity-30" />
 
-      {/* Particles */}
-      <ParticleField />
+      {/* Hero diagonal light streaks */}
+      {HERO_STREAKS.map((streak) => (
+        <motion.div
+          key={streak.id}
+          className="absolute pointer-events-none"
+          style={{
+            top: streak.top,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: `linear-gradient(90deg, transparent 0%, ${streak.color} 40%, ${streak.color} 60%, transparent 100%)`,
+          }}
+          animate={{ x: ["-110%", "110%"] }}
+          transition={{
+            duration: streak.duration,
+            delay: streak.delay,
+            repeat: Number.POSITIVE_INFINITY,
+            repeatDelay: 3,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
 
       {/* Content */}
       <motion.div
@@ -441,7 +660,9 @@ function HeroSection() {
           >
             DIVYANSH
           </span>
-          <span className="block gradient-text-gaming glow-cyan">GAMING</span>
+          <span className="block gradient-text-gaming glow-cyan glitch-text">
+            GAMING
+          </span>
         </motion.h1>
 
         {/* Tagline */}
@@ -701,7 +922,14 @@ function GamesSection() {
   const games = gamesData && gamesData.length > 0 ? gamesData : FALLBACK_GAMES;
 
   return (
-    <section id="games" className="relative py-24 overflow-hidden">
+    <section
+      id="games"
+      className="relative py-24 overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, oklch(var(--background) / 0.6) 0%, oklch(var(--background) / 0.75) 100%)",
+      }}
+    >
       {/* Decorative glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-10"
@@ -756,7 +984,11 @@ function GamesSection() {
 // ─── Racing Game Section ──────────────────────────────────────────────────────
 function RacingGameSection() {
   return (
-    <section id="race" className="relative py-24 overflow-hidden">
+    <section
+      id="race"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.09 0.02 200 / 0.75)" }}
+    >
       {/* Decorative glows */}
       <div
         className="absolute top-0 left-0 w-80 h-80 rounded-full blur-3xl pointer-events-none opacity-8"
@@ -884,10 +1116,7 @@ function LeaderboardSection() {
     <section
       id="leaderboard"
       className="relative py-24 overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(180deg, oklch(0.085 0.015 270) 0%, oklch(0.095 0.02 280) 50%, oklch(0.085 0.015 270) 100%)",
-      }}
+      style={{ background: "oklch(0.09 0.02 295 / 0.8)" }}
     >
       {/* Decorative glow */}
       <div
@@ -1125,7 +1354,11 @@ function NewsSection() {
   const posts = newsData && newsData.length > 0 ? newsData : FALLBACK_NEWS;
 
   return (
-    <section id="news" className="relative py-24 overflow-hidden">
+    <section
+      id="news"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(var(--background) / 0.65)" }}
+    >
       {/* Decorative glow */}
       <div
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-48 blur-3xl pointer-events-none opacity-8"
@@ -1209,6 +1442,8 @@ function Footer() {
     <footer
       className="relative overflow-hidden pt-16 pb-8"
       style={{
+        position: "relative",
+        zIndex: 1,
         background: "oklch(0.065 0.015 270)",
         borderTop: "1px solid oklch(var(--neon-cyan) / 0.1)",
       }}
@@ -1316,11 +1551,15 @@ export default function App() {
       className="dark min-h-screen font-body"
       style={{ background: "oklch(var(--background))" }}
     >
+      {/* Fixed immersive background — renders behind everything */}
+      <AnimatedBackground />
+
       <Navbar />
-      <main>
+      <main style={{ position: "relative", zIndex: 1 }}>
         <HeroSection />
         <GamesSection />
         <RacingGameSection />
+        <MiniGamesSection />
         <LeaderboardSection />
         <NewsSection />
       </main>
