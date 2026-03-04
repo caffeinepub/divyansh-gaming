@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Bot,
   Car,
   ChevronDown,
   ExternalLink,
@@ -25,10 +26,14 @@ import {
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
+import AIChatBot from "./components/AIChatBot";
+import GlowingCrosshairCursor from "./components/GlowingCrosshairCursor";
 import LiveWallpaper from "./components/LiveWallpaper";
 import MiniGamesSection from "./components/MiniGamesSection";
 import RacingGame from "./components/RacingGame";
+import SoundToggle from "./components/SoundToggle";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
+import { playClick, playHover } from "./hooks/useSoundEffects";
 
 // ─── Fallback game images ────────────────────────────────────────────────────
 const FALLBACK_GAME_IMAGES = [
@@ -301,6 +306,15 @@ function Navbar() {
       href: "#news",
       icon: <Newspaper className="w-3.5 h-3.5" />,
     },
+    {
+      label: "AI Chat",
+      href: "#ai-chat",
+      icon: <Bot className="w-3.5 h-3.5" />,
+      onClick: (e: React.MouseEvent) => {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent("openAIChat"));
+      },
+    },
   ];
 
   return (
@@ -348,6 +362,12 @@ function Navbar() {
             <a
               key={link.label}
               href={link.href}
+              data-ocid={`nav.${link.label.toLowerCase().replace(/\s+/g, "-")}.link`}
+              onMouseEnter={() => playHover()}
+              onClick={(e) => {
+                playClick();
+                link.onClick?.(e);
+              }}
               className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-body font-medium text-foreground/70 hover:text-neon-cyan transition-all duration-200 hover:bg-neon-cyan/5 group relative"
             >
               <span className="text-neon-cyan/50 group-hover:text-neon-cyan transition-colors">
@@ -398,7 +418,10 @@ function Navbar() {
                 <a
                   key={link.label}
                   href={link.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={(e) => {
+                    setMobileOpen(false);
+                    link.onClick?.(e);
+                  }}
                   className="flex items-center gap-2 px-3 py-2.5 rounded text-sm font-medium text-foreground/70 hover:text-neon-cyan hover:bg-neon-cyan/5 transition-all"
                 >
                   <span className="text-neon-cyan/60">{link.icon}</span>
@@ -531,16 +554,22 @@ function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.65 }}
         >
+          {/* biome-ignore lint/a11y/useValidAnchor: hash anchor navigates to section */}
           <a
             href="#games"
             className="gaming-btn-primary inline-flex items-center gap-2 px-8 py-3.5 rounded font-display font-bold text-sm tracking-widest uppercase"
+            onMouseEnter={() => playHover()}
+            onClick={() => playClick()}
           >
             <Gamepad2 className="w-4 h-4" />
             Explore Games
           </a>
+          {/* biome-ignore lint/a11y/useValidAnchor: hash anchor navigates to section */}
           <a
             href="#leaderboard"
             className="gaming-btn-accent inline-flex items-center gap-2 px-8 py-3.5 rounded font-display font-bold text-sm tracking-widest uppercase"
+            onMouseEnter={() => playHover()}
+            onClick={() => playClick()}
           >
             <Trophy className="w-4 h-4" />
             View Leaderboard
@@ -1374,15 +1403,8 @@ function Footer() {
             © {year} DIVYANSH GAMING. All rights reserved.
           </p>
           <p className="font-body text-xs text-foreground/30">
-            Built with <span className="text-neon-cyan/60">♥</span> using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-neon-cyan/60 hover:text-neon-cyan transition-colors"
-            >
-              caffeine.ai
-            </a>
+            Made with <span className="text-neon-cyan/60">♥</span> by{" "}
+            <span className="text-neon-cyan/60">Divyansh Yadav (Creator)</span>
           </p>
         </div>
       </div>
@@ -1397,6 +1419,12 @@ export default function App() {
       className="dark min-h-screen font-body"
       style={{ background: "oklch(var(--background))" }}
     >
+      {/* Custom glowing crosshair cursor */}
+      <GlowingCrosshairCursor />
+      {/* Sound toggle button */}
+      <SoundToggle />
+      {/* AI Chatbot widget */}
+      <AIChatBot />
       {/* Canvas live wallpaper — renders at z-index 0 */}
       <LiveWallpaper />
       {/* CSS overlay (aurora orbs, scanlines, circuit) — z-index 1 */}

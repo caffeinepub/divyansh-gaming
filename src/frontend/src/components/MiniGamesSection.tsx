@@ -1,6 +1,7 @@
 import { Gamepad2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { playClick, playGameStart } from "../hooks/useSoundEffects";
 import AsteroidShooter from "./games/AsteroidShooter";
 import BrickBreaker from "./games/BrickBreaker";
 import ColorMatch from "./games/ColorMatch";
@@ -206,7 +207,11 @@ function GameModal({ game, onClose }: { game: MiniGame; onClose: () => void }) {
           </div>
           <button
             type="button"
-            onClick={onClose}
+            data-ocid="minigames.close_button"
+            onClick={() => {
+              playClick();
+              onClose();
+            }}
             className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200"
             style={{
               background: "rgba(255,255,255,0.06)",
@@ -337,7 +342,10 @@ function MiniGameCard({
             boxShadow: `0 0 24px ${game.color}40`,
           }}
           whileTap={{ scale: 0.97 }}
-          onClick={onPlay}
+          onClick={() => {
+            playGameStart();
+            onPlay();
+          }}
         >
           <span>▶</span> Play
         </motion.button>

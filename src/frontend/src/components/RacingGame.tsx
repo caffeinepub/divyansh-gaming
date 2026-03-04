@@ -1,6 +1,12 @@
 import { Car, ChevronLeft, ChevronRight, Heart, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useActor } from "../hooks/useActor";
+import {
+  playCollision,
+  playGameOver,
+  playGameStart,
+  playScoreTick,
+} from "../hooks/useSoundEffects";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CANVAS_WIDTH = 480;
@@ -627,6 +633,7 @@ export default function RacingGame() {
     setPhase("playing");
     setDisplayScore(0);
     setDisplayLives(3);
+    playGameStart();
   }, []);
 
   // ─── Keyboard listeners ────────────────────────────────────────────────────
@@ -755,6 +762,7 @@ export default function RacingGame() {
         s.scoreTimer = 0;
         s.score++;
         setDisplayScore(s.score);
+        playScoreTick();
       }
 
       // Invincibility countdown
@@ -822,11 +830,13 @@ export default function RacingGame() {
             s.lives--;
             setDisplayLives(s.lives);
             s.invincibilityFrames = INVINCIBILITY_FRAMES;
+            playCollision();
             // Remove colliding enemy
             s.enemies = s.enemies.filter((en) => en.id !== e.id);
             if (s.lives <= 0) {
               phaseRef.current = "over";
               setPhase("over");
+              playGameOver();
               submitScore(s.score);
               rafRef.current = requestAnimationFrame(loop);
               return;
