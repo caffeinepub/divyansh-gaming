@@ -25,6 +25,7 @@ import {
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
+import LiveWallpaper from "./components/LiveWallpaper";
 import MiniGamesSection from "./components/MiniGamesSection";
 import RacingGame from "./components/RacingGame";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
@@ -177,53 +178,7 @@ const FALLBACK_NEWS: NewsPost[] = [
   },
 ];
 
-// ─── Animated Background ─────────────────────────────────────────────────────
-const PARTICLES = Array.from({ length: 25 }, (_, i) => ({
-  id: i,
-  x: (i * 13.7 + 7) % 100,
-  y: (i * 19.3 + 11) % 100,
-  size: (i % 3) * 1.5 + 1.5,
-  duration: (i % 5) * 1.5 + 5,
-  delay: (i % 7) * 0.6,
-  opacity: (i % 4) * 0.08 + 0.12,
-  color:
-    i % 3 === 0
-      ? "oklch(var(--neon-cyan))"
-      : i % 3 === 1
-        ? "oklch(var(--neon-violet))"
-        : "oklch(var(--neon-green))",
-}));
-
-const BEAM_CONFIGS = [
-  {
-    id: "beam-1",
-    delay: 0,
-    duration: 9,
-    gradient:
-      "linear-gradient(105deg, transparent 0%, oklch(var(--neon-cyan) / 0.06) 50%, transparent 100%)",
-    width: "60vw",
-    height: "100vh",
-  },
-  {
-    id: "beam-2",
-    delay: 3,
-    duration: 11,
-    gradient:
-      "linear-gradient(105deg, transparent 0%, oklch(var(--neon-violet) / 0.04) 50%, transparent 100%)",
-    width: "50vw",
-    height: "100vh",
-  },
-  {
-    id: "beam-3",
-    delay: 6,
-    duration: 8,
-    gradient:
-      "linear-gradient(105deg, transparent 0%, oklch(var(--neon-cyan) / 0.04) 50%, transparent 100%)",
-    width: "40vw",
-    height: "100vh",
-  },
-];
-
+// ─── Hero streaks ─────────────────────────────────────────────────────────────
 const HERO_STREAKS = [
   {
     id: "streak-1",
@@ -248,30 +203,19 @@ const HERO_STREAKS = [
   },
 ];
 
-function AnimatedBackground() {
+// AnimatedBackground is replaced by LiveWallpaper canvas + this CSS overlay
+function BackgroundOverlay() {
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 0,
+        zIndex: 1,
         pointerEvents: "none",
         overflow: "hidden",
       }}
     >
-      {/* Layer 1 — Hex grid breathing */}
-      <motion.div
-        className="absolute inset-0 bg-hex-grid"
-        animate={{ opacity: [0.4, 0.7, 0.4] }}
-        transition={{
-          duration: 6,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* Layer 2 — Aurora orbs */}
-      {/* Top-left cyan orb */}
+      {/* Aurora orbs — sit above canvas */}
       <motion.div
         className="absolute rounded-full"
         style={{
@@ -280,20 +224,16 @@ function AnimatedBackground() {
           width: 700,
           height: 700,
           background:
-            "radial-gradient(circle, oklch(var(--neon-cyan) / 0.12) 0%, transparent 70%)",
-          filter: "blur(40px)",
+            "radial-gradient(circle, oklch(var(--neon-cyan) / 0.08) 0%, transparent 70%)",
+          filter: "blur(50px)",
         }}
-        animate={{
-          x: [-40, 60, -40],
-          y: [-20, 30, -20],
-        }}
+        animate={{ x: [-40, 60, -40], y: [-20, 30, -20] }}
         transition={{
-          duration: 12,
+          duration: 14,
           repeat: Number.POSITIVE_INFINITY,
           ease: "easeInOut",
         }}
       />
-      {/* Top-right violet orb */}
       <motion.div
         className="absolute rounded-full"
         style={{
@@ -302,117 +242,23 @@ function AnimatedBackground() {
           width: 600,
           height: 600,
           background:
-            "radial-gradient(circle, oklch(var(--neon-violet) / 0.10) 0%, transparent 70%)",
-          filter: "blur(40px)",
+            "radial-gradient(circle, oklch(var(--neon-violet) / 0.07) 0%, transparent 70%)",
+          filter: "blur(50px)",
         }}
-        animate={{
-          x: [30, -60, 30],
-          y: [-10, 40, -10],
-        }}
+        animate={{ x: [30, -60, 30], y: [-10, 40, -10] }}
         transition={{
-          duration: 15,
+          duration: 17,
           delay: 3,
           repeat: Number.POSITIVE_INFINITY,
           ease: "easeInOut",
         }}
       />
-      {/* Bottom-center green orb */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{
-          bottom: "-10%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 800,
-          height: 500,
-          background:
-            "radial-gradient(ellipse, oklch(var(--neon-green) / 0.06) 0%, transparent 70%)",
-          filter: "blur(60px)",
-        }}
-        animate={{
-          x: [-50, 50, -50],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
-      />
-      {/* Center gold orb */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{
-          top: "40%",
-          left: "45%",
-          width: 400,
-          height: 400,
-          background:
-            "radial-gradient(circle, oklch(var(--gold) / 0.05) 0%, transparent 70%)",
-          filter: "blur(50px)",
-        }}
-        animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.15, 1] }}
-        transition={{
-          duration: 10,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
-      />
 
-      {/* Layer 3 — Diagonal beam sweeps */}
-      {BEAM_CONFIGS.map((beam) => (
-        <motion.div
-          key={beam.id}
-          className="absolute top-0 bottom-0"
-          style={{
-            width: beam.width,
-            height: beam.height,
-            background: beam.gradient,
-            skewX: "-15deg",
-            transformOrigin: "center",
-          }}
-          animate={{ x: ["-200%", "250%"] }}
-          transition={{
-            duration: beam.duration,
-            delay: beam.delay,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatDelay: 4,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
+      {/* Scanlines */}
+      <div className="absolute inset-0 bg-scanlines opacity-15" />
 
-      {/* Layer 4 — Particles */}
-      {PARTICLES.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
-            background: p.color,
-            opacity: p.opacity,
-          }}
-          animate={{
-            y: [0, -35, 0],
-            opacity: [p.opacity, p.opacity * 0.25, p.opacity],
-            scale: [1, 1.8, 1],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-
-      {/* Layer 5 — Scanlines */}
-      <div className="absolute inset-0 bg-scanlines opacity-20" />
-
-      {/* Layer 6 — Circuit overlay */}
-      <div className="absolute inset-0 bg-circuit" style={{ opacity: 0.035 }} />
+      {/* Circuit overlay */}
+      <div className="absolute inset-0 bg-circuit" style={{ opacity: 0.025 }} />
     </div>
   );
 }
@@ -1551,11 +1397,13 @@ export default function App() {
       className="dark min-h-screen font-body"
       style={{ background: "oklch(var(--background))" }}
     >
-      {/* Fixed immersive background — renders behind everything */}
-      <AnimatedBackground />
+      {/* Canvas live wallpaper — renders at z-index 0 */}
+      <LiveWallpaper />
+      {/* CSS overlay (aurora orbs, scanlines, circuit) — z-index 1 */}
+      <BackgroundOverlay />
 
       <Navbar />
-      <main style={{ position: "relative", zIndex: 1 }}>
+      <main style={{ position: "relative", zIndex: 2 }}>
         <HeroSection />
         <GamesSection />
         <RacingGameSection />

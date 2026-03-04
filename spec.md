@@ -1,36 +1,45 @@
 # DIVYANSH GAMING
 
 ## Current State
-The site has a dark cyberpunk aesthetic with:
-- A static hero background image with a plain gradient overlay
-- A simple CSS grid pattern and scanlines on the hero
-- 40 floating particles in the hero section
-- Solid flat dark backgrounds on all other sections (games, leaderboard, news, footer)
-- Basic radial blur glows in section corners
+The site has an `AnimatedBackground` component with:
+- Pulsing hex grid (CSS SVG pattern)
+- Four aurora orbs (blurred radial gradients, motion-animated)
+- Three diagonal beam sweeps
+- 25 floating particles (motion-animated dots)
+- Scanlines overlay
+- Circuit board CSS pattern overlay
 
 ## Requested Changes (Diff)
 
 ### Add
-- Animated hex grid pattern as a persistent full-page background layer
-- Moving beam/streak lights that sweep across the background
-- Pulsing radial aura/orb effects layered behind all sections
-- A noise/grain texture overlay for depth
-- Parallax depth lines that subtly animate on scroll
-- Glowing circuit board trace lines on section transitions
-- More immersive per-section background differentiation (each section gets a unique ambient glow color treatment)
-- Animated grid that shifts/distorts on the hero for a holographic look
+- A full-screen `<canvas>` live wallpaper layer rendered at `z-index: 0` behind all content
+- Canvas renders a Three.js or requestAnimationFrame-based scene with:
+  - Fast-flying neon star particles moving toward the viewer (hyperspace/warp tunnel effect)
+  - A continuous neon grid floor/perspective plane scrolling toward viewer (like a retro-futuristic racing game)
+  - Occasional bright shooting-star/laser streaks across the screen
+  - Color palette: electric cyan, neon violet, hot pink accent — matching existing CSS tokens
+- A `LiveWallpaper` React component encapsulating the canvas and all animation logic
+- The component uses `requestAnimationFrame` loop with proper cleanup on unmount
 
 ### Modify
-- `index.css`: Add new keyframe animations for hex pulse, beam sweep, circuit trace, and aurora drift
-- `App.tsx`: Replace `ParticleField` with a richer `AnimatedBackground` component that includes hex grid + orbs + beams. Apply unique per-section background treatments.
-- All section backgrounds: richer gradient stops with more depth, less flat
+- Replace existing `AnimatedBackground` component in `App.tsx` with the new `LiveWallpaper` component
+- Keep existing aurora orbs, hex grid, scanlines, and circuit overlay as secondary CSS layers on top of the canvas for depth
+- Reduce some existing Motion animations to avoid visual overload (orb opacity slightly reduced)
 
 ### Remove
-- Nothing removed — all existing content retained
+- The current hex grid motion pulsing (replaced by the live canvas energy)
+- Redundant beam sweeps (the canvas shooting stars serve this role)
 
 ## Implementation Plan
-1. Add new CSS keyframe animations and background utility classes to `index.css`
-2. Replace `ParticleField` with a full-viewport `AnimatedBackground` component (hex grid, pulsing orbs, beam sweeps, particles combined)
-3. Apply a persistent animated background layer that sits behind all page content
-4. Give each section a richer background treatment with unique color temperament
-5. Validate build passes
+1. Create `src/frontend/src/components/LiveWallpaper.tsx` with a canvas-based animation:
+   - requestAnimationFrame loop
+   - Warp/hyperspace star particles (hundreds of points flying from center outward)
+   - Neon perspective grid floor using 2D canvas perspective transform lines
+   - Occasional shooting laser/streak lines
+   - Resize handling
+   - Cleanup on unmount
+2. Update `App.tsx`:
+   - Import `LiveWallpaper`
+   - Replace `AnimatedBackground` JSX call with `<LiveWallpaper />`
+   - Keep aurora orbs, scanlines, circuit as a second overlay layer
+   - Remove hex grid pulsing motion div (kept as static CSS underneath)
