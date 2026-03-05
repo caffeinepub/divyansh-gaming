@@ -317,6 +317,18 @@
   to { height: "0" }
 }
 
+@keyframes spin3d {
+  0% { transform: perspective(200px) rotateY(0deg); }
+  100% { transform: perspective(200px) rotateY(360deg); }
+}
+
+.spin3d-icon {
+  animation: spin3d 4s linear infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* =====================
    Component overrides
    ===================== */

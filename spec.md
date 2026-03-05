@@ -1,45 +1,38 @@
-# DIVYANSH GAMING
+# DIVYANSH GAMING — Full 3D Upgrade
 
 ## Current State
-The site has an `AnimatedBackground` component with:
-- Pulsing hex grid (CSS SVG pattern)
-- Four aurora orbs (blurred radial gradients, motion-animated)
-- Three diagonal beam sweeps
-- 25 floating particles (motion-animated dots)
-- Scanlines overlay
-- Circuit board CSS pattern overlay
+- Full gaming website with: hero section, games grid, car racing game, 10 mini games, leaderboard, news, positive thoughts, AI chatbot, glowing crosshair cursor, sound effects, animated live wallpaper (canvas 2D: star warp tunnel, perspective grid, laser streaks)
+- Background: `LiveWallpaper.tsx` — 2D canvas with warp stars, perspective grid floor, laser streaks
+- Sections: 2D flat layouts with framer-motion scroll animations, neon glow CSS effects
+- React Three Fiber (`@react-three/fiber`), `@react-three/drei`, `@react-three/cannon`, and `three` are already installed in package.json
 
 ## Requested Changes (Diff)
 
 ### Add
-- A full-screen `<canvas>` live wallpaper layer rendered at `z-index: 0` behind all content
-- Canvas renders a Three.js or requestAnimationFrame-based scene with:
-  - Fast-flying neon star particles moving toward the viewer (hyperspace/warp tunnel effect)
-  - A continuous neon grid floor/perspective plane scrolling toward viewer (like a retro-futuristic racing game)
-  - Occasional bright shooting-star/laser streaks across the screen
-  - Color palette: electric cyan, neon violet, hot pink accent — matching existing CSS tokens
-- A `LiveWallpaper` React component encapsulating the canvas and all animation logic
-- The component uses `requestAnimationFrame` loop with proper cleanup on unmount
+- **3D Live Background** (`Scene3D.tsx`): Replace the `LiveWallpaper.tsx` 2D canvas with a full-screen React Three Fiber `<Canvas>` scene containing:
+  - Warp-speed star field (instanced mesh, 800 stars flying toward camera along Z)
+  - Neon perspective grid floor (custom `PlaneGeometry` + `LineSegments` or `GridHelper`) scrolling toward camera
+  - Floating 3D game controller model built from `BoxGeometry` / `SphereGeometry` primitives — glowing neon material, slowly rotating
+  - Particle system: random neon spark bursts drifting across the scene
+  - Bloom post-processing via `@react-three/postprocessing` (if available) or a custom emissive glow approach
+- **3D Hero Floating Text** (`Hero3DText.tsx`): The hero section's "DIVYANSH GAMING" title gets a 3D layered depth effect using CSS `transform: perspective()` + rotateX/rotateY on mouse move (pure CSS/JS, no R3F needed here — keep it performant)
+- **3D Game Cards** (`GameCard3D`): Cards in the games grid tilt in 3D on hover using CSS `perspective` + `rotateX/rotateY` driven by mouse position within the card
+- **3D Section Dividers**: Between each major section, add a thin 3D-looking neon divider line with a glowing orb traveling along it (CSS perspective transform)
+- **3D Floating Icons** in hero stats row: each stat (Active Players, Games Available, Tournaments Won) gets a small 3D-spinning icon rendered using inline CSS 3D transforms with `animation: spin3d`
 
 ### Modify
-- Replace existing `AnimatedBackground` component in `App.tsx` with the new `LiveWallpaper` component
-- Keep existing aurora orbs, hex grid, scanlines, and circuit overlay as secondary CSS layers on top of the canvas for depth
-- Reduce some existing Motion animations to avoid visual overload (orb opacity slightly reduced)
+- `LiveWallpaper.tsx`: Replace 2D canvas implementation with `Scene3D.tsx` R3F canvas (or keep LiveWallpaper as a thin wrapper that mounts Scene3D)
+- `App.tsx`: Import and use new 3D components; apply 3D card tilt to `GameCard`; add 3D section separators; hero stats get 3D icons; hero title gets 3D mouse-track perspective
+- `index.css`: Add CSS 3D utility classes: `.card-3d-tilt`, `.spin3d`, `.depth-text`, `@keyframes spin3d`
 
 ### Remove
-- The current hex grid motion pulsing (replaced by the live canvas energy)
-- Redundant beam sweeps (the canvas shooting stars serve this role)
+- The 2D canvas star/grid/streak rendering code in `LiveWallpaper.tsx` (replaced by R3F scene)
 
 ## Implementation Plan
-1. Create `src/frontend/src/components/LiveWallpaper.tsx` with a canvas-based animation:
-   - requestAnimationFrame loop
-   - Warp/hyperspace star particles (hundreds of points flying from center outward)
-   - Neon perspective grid floor using 2D canvas perspective transform lines
-   - Occasional shooting laser/streak lines
-   - Resize handling
-   - Cleanup on unmount
-2. Update `App.tsx`:
-   - Import `LiveWallpaper`
-   - Replace `AnimatedBackground` JSX call with `<LiveWallpaper />`
-   - Keep aurora orbs, scanlines, circuit as a second overlay layer
-   - Remove hex grid pulsing motion div (kept as static CSS underneath)
+1. Create `src/components/Scene3D.tsx` — full-screen R3F Canvas with: warp star field (InstancedMesh), neon grid plane, floating 3D controller model from primitives, particle sparks, bloom via `UnrealBloomPass` or emissive materials
+2. Replace `LiveWallpaper.tsx` contents to mount `Scene3D.tsx` in a fixed full-screen container at z-index 0
+3. Add CSS 3D tilt logic to `GameCard` in `App.tsx` — `onMouseMove` tracks pointer offset within card and applies `rotateX/rotateY` via inline style `transform: perspective(800px) rotateX(Xdeg) rotateY(Ydeg)`
+4. Add 3D hero title parallax: `HeroSection` listens to `mousemove` on `document`, applies `perspective(1200px) rotateX/rotateY` (max ±6deg) to the heading wrapper
+5. Add 3D spinning CSS icons to hero stats (use `@keyframes` rotate3d in index.css)
+6. Add section divider component with traveling glow orb between sections
+7. Validate typecheck + build; fix any errors

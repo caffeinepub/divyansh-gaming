@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import {
   Bot,
+  Brain,
   Car,
   ChevronDown,
   ExternalLink,
@@ -16,6 +17,7 @@ import {
   Menu,
   Newspaper,
   Play,
+  Quote,
   Shield,
   Star,
   Target,
@@ -24,7 +26,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
 import GlowingCrosshairCursor from "./components/GlowingCrosshairCursor";
@@ -208,6 +210,60 @@ const HERO_STREAKS = [
   },
 ];
 
+// ─── Section Divider ──────────────────────────────────────────────────────────
+function SectionDivider() {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: 24,
+        position: "relative",
+        transform: "perspective(400px) rotateX(45deg)",
+        transformOrigin: "center top",
+        pointerEvents: "none",
+        overflow: "hidden",
+        zIndex: 3,
+      }}
+    >
+      {/* Neon gradient line */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          right: 0,
+          height: 1,
+          background:
+            "linear-gradient(90deg, transparent 0%, oklch(0.82 0.18 200) 20%, oklch(0.62 0.22 295) 50%, oklch(0.82 0.18 200) 80%, transparent 100%)",
+          opacity: 0.5,
+        }}
+      />
+      {/* Traveling orb */}
+      <motion.div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          translateY: "-50%",
+          background:
+            "radial-gradient(circle, oklch(0.82 0.18 200) 0%, oklch(0.82 0.18 200 / 0.3) 60%, transparent 100%)",
+          boxShadow: "0 0 12px 4px oklch(0.82 0.18 200 / 0.6)",
+          filter: "blur(1px)",
+        }}
+        animate={{ x: ["0%", "calc(100vw - 8px)"] }}
+        transition={{
+          duration: 3,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "linear",
+        }}
+      />
+    </div>
+  );
+}
+
 // AnimatedBackground is replaced by LiveWallpaper canvas + this CSS overlay
 function BackgroundOverlay() {
   return (
@@ -305,6 +361,11 @@ function Navbar() {
       label: "News",
       href: "#news",
       icon: <Newspaper className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Thoughts",
+      href: "#positive-thoughts",
+      icon: <Brain className="w-3.5 h-3.5" />,
     },
     {
       label: "AI Chat",
@@ -441,6 +502,20 @@ function HeroSection() {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 600], [0, 80]);
   const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const headingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!headingRef.current) return;
+      const nx = (e.clientX / window.innerWidth) * 2 - 1; // -1 to 1
+      const ny = (e.clientY / window.innerHeight) * 2 - 1; // -1 to 1
+      const rotY = nx * 6;
+      const rotX = ny * -4;
+      headingRef.current.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    };
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   return (
     <section
@@ -513,26 +588,35 @@ function HeroSection() {
           </div>
         </motion.div>
 
-        {/* Main heading */}
-        <motion.h1
-          className="font-display font-black text-5xl sm:text-6xl md:text-8xl lg:text-9xl tracking-tight mb-4 leading-none"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        {/* Main heading — 3D parallax wrapper */}
+        <div
+          ref={headingRef}
+          style={{
+            transition: "transform 0.15s ease-out",
+            willChange: "transform",
+            display: "inline-block",
+          }}
         >
-          <span
-            className="block"
-            style={{
-              color: "oklch(var(--foreground))",
-              textShadow: "0 0 40px oklch(var(--neon-cyan) / 0.2)",
-            }}
+          <motion.h1
+            className="font-display font-black text-5xl sm:text-6xl md:text-8xl lg:text-9xl tracking-tight mb-4 leading-none"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
-            DIVYANSH
-          </span>
-          <span className="block gradient-text-gaming glow-cyan glitch-text">
-            GAMING
-          </span>
-        </motion.h1>
+            <span
+              className="block"
+              style={{
+                color: "oklch(var(--foreground))",
+                textShadow: "0 0 40px oklch(var(--neon-cyan) / 0.2)",
+              }}
+            >
+              DIVYANSH
+            </span>
+            <span className="block gradient-text-gaming glow-cyan glitch-text">
+              GAMING
+            </span>
+          </motion.h1>
+        </div>
 
         {/* Tagline */}
         <motion.p
@@ -602,7 +686,8 @@ function HeroSection() {
           ].map((stat) => (
             <div key={stat.label} className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-2 text-neon-cyan mb-1">
-                {stat.icon}
+                {/* 3D spinning icon */}
+                <div className="spin3d-icon">{stat.icon}</div>
                 <span className="font-display font-black text-2xl glow-cyan">
                   {stat.value}
                 </span>
@@ -667,22 +752,48 @@ function GameCard({ game, index }: { game: Game; index: number }) {
   const fallbackImg = FALLBACK_GAME_IMAGES[index % FALLBACK_GAME_IMAGES.length];
   const gradientClass =
     FALLBACK_GRADIENT_CLASSES[index % FALLBACK_GRADIENT_CLASSES.length];
+  const cardRef = useRef<HTMLElement>(null);
 
   const imgSrc = imgError || !game.imageUrl ? fallbackImg : game.imageUrl;
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    const rotX = dy * -8;
+    const rotY = dx * 8;
+    card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px) scale(1.02)`;
+    card.style.transition = "transform 0.05s ease";
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform =
+      "perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)";
+    card.style.transition = "transform 0.4s ease";
+  };
+
   return (
     <motion.article
+      ref={cardRef}
       className="group relative rounded-lg overflow-hidden cursor-pointer"
       style={{
         background: "oklch(var(--card))",
         border: "1px solid oklch(var(--border))",
         boxShadow: "0 4px 24px oklch(0 0 0 / 0.5)",
+        willChange: "transform",
       }}
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
-      whileHover={{ y: -6, scale: 1.02 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Image */}
       <div className="relative aspect-[5/7] overflow-hidden">
@@ -1159,20 +1270,44 @@ function NewsCard({ post, index }: { post: NewsPost; index: number }) {
       return post.date;
     }
   })();
+  const cardRef = useRef<HTMLElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    card.style.transform = `perspective(800px) rotateX(${dy * -5}deg) rotateY(${dx * 5}deg) translateY(-4px)`;
+    card.style.transition = "transform 0.05s ease";
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform =
+      "perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)";
+    card.style.transition = "transform 0.4s ease";
+  };
 
   return (
     <motion.article
+      ref={cardRef}
       className="group rounded-lg overflow-hidden cursor-pointer"
       style={{
         background: "oklch(var(--card))",
         border: "1px solid oklch(var(--border))",
         boxShadow: "0 4px 24px oklch(0 0 0 / 0.4)",
+        willChange: "transform",
       }}
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{ y: -4 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Top accent line */}
       <div
@@ -1299,6 +1434,251 @@ function NewsSection() {
             ))}
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+// ─── Positive Thoughts Section ────────────────────────────────────────────────
+const GAMING_QUOTES = [
+  {
+    id: "quote-defeat-tutorial",
+    quote: "Every defeat is a tutorial. Every victory is earned.",
+    author: "XxDivyanshxX",
+  },
+  {
+    id: "quote-obstacle-solution",
+    quote: "Gaming teaches you that every obstacle has a solution.",
+    author: "Divyansh Gaming",
+  },
+  {
+    id: "quote-grind-great",
+    quote: "The best players aren't born — they grind until they're great.",
+    author: "NeonReaper",
+  },
+  {
+    id: "quote-save-point",
+    quote: "In games, failure is just another save point before success.",
+    author: "Divyansh Gaming",
+  },
+  {
+    id: "quote-focus-strategy",
+    quote: "Gaming builds focus, strategy, and unstoppable determination.",
+    author: "VoidStrike",
+  },
+  {
+    id: "quote-main-character",
+    quote: "Press start and remember: you are the main character.",
+    author: "Divyansh Gaming",
+  },
+  {
+    id: "quote-high-score",
+    quote:
+      "Every high score you chase makes you a stronger version of yourself.",
+    author: "ArcaneHunter",
+  },
+  {
+    id: "quote-imagination",
+    quote: "Gaming is the art of turning imagination into reality.",
+    author: "Divyansh Gaming",
+  },
+  {
+    id: "quote-champions-respawn",
+    quote: "Champions respawn. Quitters don't get the loot.",
+    author: "TurboBlaze",
+  },
+];
+
+const QUOTE_ACCENT_COLORS = [
+  "oklch(var(--neon-cyan))",
+  "oklch(var(--neon-violet))",
+  "oklch(var(--gold))",
+  "oklch(var(--neon-cyan))",
+  "oklch(var(--neon-violet))",
+  "oklch(var(--gold))",
+  "oklch(var(--neon-cyan))",
+  "oklch(var(--neon-violet))",
+  "oklch(var(--gold))",
+];
+
+function QuoteCard({
+  quote,
+  author,
+  index,
+  accentColor,
+}: {
+  quote: string;
+  author: string;
+  index: number;
+  accentColor: string;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    card.style.transform = `perspective(800px) rotateX(${dy * -5}deg) rotateY(${dx * 5}deg) translateY(-6px)`;
+    card.style.transition = "transform 0.05s ease";
+    card.style.boxShadow = `0 12px 40px oklch(0 0 0 / 0.55), 0 0 24px ${accentColor.replace(")", " / 0.12)")}`;
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform =
+      "perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)";
+    card.style.transition = "transform 0.4s ease";
+    card.style.boxShadow = "0 4px 24px oklch(0 0 0 / 0.45)";
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      className="relative group rounded-lg p-6 flex flex-col gap-4 h-full"
+      style={{
+        background: "oklch(var(--card))",
+        border: `1px solid ${accentColor.replace(")", " / 0.25)")}`,
+        boxShadow: "0 4px 24px oklch(0 0 0 / 0.45)",
+        willChange: "transform",
+      }}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, delay: index * 0.08, ease: "easeOut" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      data-ocid={`thoughts.item.${index + 1}`}
+    >
+      {/* Neon quote icon */}
+      <div
+        className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0"
+        style={{
+          background: accentColor.replace(")", " / 0.1)"),
+          border: `1px solid ${accentColor.replace(")", " / 0.3)")}`,
+          color: accentColor,
+          filter: `drop-shadow(0 0 6px ${accentColor.replace(")", " / 0.5)")})`,
+        }}
+      >
+        <Quote className="w-5 h-5" />
+      </div>
+
+      {/* Quote text */}
+      <p
+        className="font-body text-sm leading-relaxed text-foreground/80 flex-1 italic"
+        style={{ lineHeight: "1.7" }}
+      >
+        "{quote}"
+      </p>
+
+      {/* Attribution */}
+      <div
+        className="flex items-center gap-2 mt-auto pt-3"
+        style={{
+          borderTop: `1px solid ${accentColor.replace(")", " / 0.12)")}`,
+        }}
+      >
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black font-display shrink-0"
+          style={{
+            background: accentColor.replace(")", " / 0.15)"),
+            color: accentColor,
+          }}
+        >
+          {author.charAt(0).toUpperCase()}
+        </div>
+        <span
+          className="font-mono text-xs font-semibold tracking-wider"
+          style={{ color: accentColor }}
+        >
+          — {author}
+        </span>
+      </div>
+
+      {/* Hover glow corner */}
+      <div
+        className="absolute top-0 right-0 w-16 h-16 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at top right, ${accentColor.replace(")", " / 0.1)")}, transparent 70%)`,
+        }}
+      />
+    </motion.div>
+  );
+}
+
+function PositiveThoughtsSection() {
+  return (
+    <section
+      id="positive-thoughts"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.09 0.02 270 / 0.75)" }}
+    >
+      {/* Decorative blurred glow orb */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none opacity-10"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(var(--neon-cyan)) 0%, oklch(var(--neon-violet)) 50%, transparent 70%)",
+        }}
+      />
+      {/* Corner accent orbs */}
+      <div
+        className="absolute top-0 left-0 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(var(--neon-violet))" }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(var(--gold))" }}
+      />
+
+      <div className="container px-4 md:px-6 relative z-10">
+        {/* Section header */}
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(var(--neon-cyan) / 0.08)",
+              border: "1px solid oklch(var(--neon-cyan) / 0.3)",
+              color: "oklch(var(--neon-cyan))",
+            }}
+          >
+            <Brain className="w-3 h-3" />
+            Gamer Mindset
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Level Up Your{" "}
+            <span className="gradient-text-gaming glow-cyan">Mindset</span>
+          </h2>
+          <p
+            className="font-body text-lg text-foreground/60 max-w-xl mx-auto"
+            style={{ fontStyle: "italic" }}
+          >
+            Gaming isn't just play — it's where legends are made.
+          </p>
+        </motion.div>
+
+        {/* Quotes grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
+          {GAMING_QUOTES.map((item, i) => (
+            <QuoteCard
+              key={item.id}
+              quote={item.quote}
+              author={item.author}
+              index={i}
+              accentColor={QUOTE_ACCENT_COLORS[i]}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1433,11 +1813,18 @@ export default function App() {
       <Navbar />
       <main style={{ position: "relative", zIndex: 2 }}>
         <HeroSection />
+        <SectionDivider />
         <GamesSection />
+        <SectionDivider />
         <RacingGameSection />
+        <SectionDivider />
         <MiniGamesSection />
+        <SectionDivider />
         <LeaderboardSection />
+        <SectionDivider />
         <NewsSection />
+        <SectionDivider />
+        <PositiveThoughtsSection />
       </main>
       <Footer />
     </div>
