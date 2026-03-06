@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Award,
   Bot,
   Brain,
   Car,
@@ -35,6 +36,8 @@ import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
+import AchievementToast from "./components/AchievementToast";
+import AchievementsSection from "./components/AchievementsSection";
 import DailyChallenge from "./components/DailyChallenge";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
@@ -48,9 +51,17 @@ import SoundToggle from "./components/SoundToggle";
 import SpaceShooter3D from "./components/SpaceShooter3D";
 import ThemeControls from "./components/ThemeControls";
 import TournamentBracket from "./components/TournamentBracket";
+import { XPLevelCardFull, XPLevelCardWidget } from "./components/XPLevelCard";
+import XPToast from "./components/XPToast";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import {
+  checkAndUnlockAchievements,
+  incrementScoresSubmitted,
+  initSecretAchievementListener,
+} from "./hooks/useAchievements";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
 import { playClick, playHover } from "./hooks/useSoundEffects";
+import { awardXP, getProfile } from "./hooks/useXPSystem";
 
 // ─── Fallback game images ────────────────────────────────────────────────────
 const FALLBACK_GAME_IMAGES = [
@@ -407,6 +418,16 @@ function Navbar() {
       label: "Tournament",
       href: "#tournament",
       icon: <Trophy className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "XP",
+      href: "#xp-level",
+      icon: <Star className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Achievements",
+      href: "#achievements",
+      icon: <Award className="w-3.5 h-3.5" />,
     },
     {
       label: "Platformer",
@@ -1328,6 +1349,83 @@ function TournamentSection() {
   );
 }
 
+// ─── XP & Level Section ───────────────────────────────────────────────────────
+function XPSection() {
+  return (
+    <section
+      id="xp-level"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.08 0.03 50 / 0.85)" }}
+    >
+      {/* Gold glow orb */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none opacity-10"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(0.78 0.17 60), transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(0.78 0.17 60)" }}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl pointer-events-none opacity-6"
+        style={{ background: "oklch(0.82 0.18 200)" }}
+      />
+
+      <div className="container px-4 md:px-6 relative z-10">
+        {/* Section header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(0.78 0.17 60 / 0.1)",
+              border: "1px solid oklch(0.78 0.17 60 / 0.4)",
+              color: "oklch(0.78 0.17 60)",
+            }}
+          >
+            <Star className="w-3 h-3" />
+            Experience &amp; Ranks
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Your{" "}
+            <span
+              style={{
+                color: "oklch(0.78 0.17 60)",
+                textShadow: "0 0 24px oklch(0.78 0.17 60 / 0.45)",
+              }}
+            >
+              XP Journey
+            </span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            Complete daily challenges and win tournaments to earn XP and level
+            up. Reach Grandmaster by mastering every challenge.
+          </p>
+        </motion.div>
+
+        {/* XP Level Card */}
+        <motion.div
+          className="flex justify-center"
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <XPLevelCardFull />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 // ─── 3D Platformer Section ────────────────────────────────────────────────────
 function Platformer3DSection() {
   return (
@@ -1872,6 +1970,10 @@ function LeaderboardSection() {
         open={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         onSuccess={(updatedLB) => {
+          // Increment score submission counter (for achievements)
+          incrementScoresSubmitted();
+          // Award XP for score submission
+          awardXP(25, "Score Submitted");
           // Find the highest-ranked NEW entry (not in FALLBACK_LEADERBOARD)
           const fallbackNames = new Set(
             FALLBACK_LEADERBOARD.map((e) => e.playerName),
@@ -2571,6 +2673,68 @@ function LobbySection() {
 function InnerApp() {
   const { theme } = useTheme();
   const themeColor = THEME_HEX[theme] ?? 0x00f5ff;
+  const footerSentinelRef = useRef<HTMLDivElement>(null);
+
+  // Listen for xp-awarded events and check / unlock achievements
+  useEffect(() => {
+    const handler = () => {
+      const profile = getProfile();
+      checkAndUnlockAchievements(profile);
+    };
+    window.addEventListener("xp-awarded", handler);
+    return () => window.removeEventListener("xp-awarded", handler);
+  }, []);
+
+  // Initialize secret achievement listener once on mount
+  useEffect(() => {
+    initSecretAchievementListener();
+
+    // Night Owl: playing between midnight and 4am
+    const hour = new Date().getHours();
+    if (hour < 4) {
+      window.dispatchEvent(
+        new CustomEvent("secret-trigger", {
+          detail: { id: "secret_night_owl" },
+        }),
+      );
+    }
+  }, []);
+
+  // Secret Admirer: footer visible for 5 continuous seconds
+  useEffect(() => {
+    const sentinel = footerSentinelRef.current;
+    if (!sentinel) return;
+
+    let visibleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            visibleTimer = setTimeout(() => {
+              window.dispatchEvent(
+                new CustomEvent("secret-trigger", {
+                  detail: { id: "secret_admirer" },
+                }),
+              );
+            }, 5000);
+          } else {
+            if (visibleTimer) {
+              clearTimeout(visibleTimer);
+              visibleTimer = null;
+            }
+          }
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(sentinel);
+    return () => {
+      observer.disconnect();
+      if (visibleTimer) clearTimeout(visibleTimer);
+    };
+  }, []);
 
   return (
     <div
@@ -2579,8 +2743,14 @@ function InnerApp() {
     >
       {/* Loading screen */}
       <LoadingScreen />
+      {/* XP Toast — globally rendered, above everything */}
+      <XPToast />
+      {/* Achievement Toast — below XP toast */}
+      <AchievementToast />
       {/* Sound toggle button */}
       <SoundToggle />
+      {/* XP Level Widget — above SoundToggle */}
+      <XPLevelCardWidget />
       {/* Theme controls — day/night + color swatches */}
       <ThemeControls />
       {/* AI Chatbot widget */}
@@ -2610,6 +2780,10 @@ function InnerApp() {
         <SectionDivider />
         <TournamentSection />
         <SectionDivider />
+        <XPSection />
+        <SectionDivider />
+        <AchievementsSection />
+        <SectionDivider />
         <Platformer3DSection />
         <SectionDivider />
         <LeaderboardSection />
@@ -2618,6 +2792,8 @@ function InnerApp() {
         <SectionDivider />
         <PositiveThoughtsSection />
       </main>
+      {/* Sentinel for secret_admirer IntersectionObserver */}
+      <div ref={footerSentinelRef} style={{ height: 1 }} aria-hidden="true" />
       <Footer />
     </div>
   );

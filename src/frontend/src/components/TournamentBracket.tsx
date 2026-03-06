@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { awardXP } from "../hooks/useXPSystem";
 
 const BOT_NAMES = [
   "NeonReaper",
@@ -336,6 +337,17 @@ export default function TournamentBracket() {
       match.winner = winner;
       setFlashMatch(matchId);
       setTimeout(() => setFlashMatch(null), 800);
+
+      // Award XP for user involvement
+      if (userInMatch) {
+        const userWon = winner.isUser;
+        const isFinalRound = targetRoundIdx === 2;
+        if (userWon && isFinalRound) {
+          awardXP(500, "Tournament Win");
+        } else {
+          awardXP(50, "Tournament Match");
+        }
+      }
 
       // Check if all matches in this round are done → advance
       const currentRound = newRounds[targetRoundIdx];

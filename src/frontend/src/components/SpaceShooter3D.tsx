@@ -96,6 +96,7 @@ interface GameData {
   onPowerUp: (type: PowerUp["type"]) => void;
   onBossDefeated: (bossCount: number) => void;
   onBossIncoming: () => void;
+  onBulletFired?: () => void;
 }
 
 // ─── Player Ship ──────────────────────────────────────────────────────────────
@@ -939,6 +940,7 @@ function GameLoop({
         x: data.playerX,
         y: -3.0,
       });
+      data.onBulletFired?.();
     }
 
     // Boss wave logic
@@ -1374,6 +1376,13 @@ export default function SpaceShooter3D() {
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
 
+  // Secret achievement tracking
+  const nukesUsedRef = useRef(0);
+  const bulletsFireRef = useRef(0);
+  const secretNukeFiredRef = useRef(false);
+  const secretBulletFiredRef = useRef(false);
+  const stargazerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const gameData = useRef<GameData>({
     playerX: 0,
     bullets: [],
@@ -1439,6 +1448,16 @@ export default function SpaceShooter3D() {
             age: 0,
           });
         }
+        // Secret: Nuke Happy
+        nukesUsedRef.current += 1;
+        if (!secretNukeFiredRef.current && nukesUsedRef.current >= 3) {
+          secretNukeFiredRef.current = true;
+          window.dispatchEvent(
+            new CustomEvent("secret-trigger", {
+              detail: { id: "secret_nuke_happy" },
+            }),
+          );
+        }
       }
     },
     onBossDefeated: (bossCount: number) => {
@@ -1455,6 +1474,17 @@ export default function SpaceShooter3D() {
     },
     onBossIncoming: () => {
       // This is a placeholder; actual call goes through React state
+    },
+    onBulletFired: () => {
+      bulletsFireRef.current += 1;
+      if (!secretBulletFiredRef.current && bulletsFireRef.current >= 100) {
+        secretBulletFiredRef.current = true;
+        window.dispatchEvent(
+          new CustomEvent("secret-trigger", {
+            detail: { id: "secret_bullet_storm" },
+          }),
+        );
+      }
     },
   });
 
@@ -1511,6 +1541,30 @@ export default function SpaceShooter3D() {
     return () => clearInterval(interval);
   }, [rapidFireUntil]);
 
+  // Stargazer: fire after staying on start screen for 10 seconds
+  useEffect(() => {
+    if (gameState.phase === "idle") {
+      stargazerTimerRef.current = setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent("secret-trigger", {
+            detail: { id: "secret_stargazer" },
+          }),
+        );
+      }, 10000);
+    } else {
+      if (stargazerTimerRef.current) {
+        clearTimeout(stargazerTimerRef.current);
+        stargazerTimerRef.current = null;
+      }
+    }
+    return () => {
+      if (stargazerTimerRef.current) {
+        clearTimeout(stargazerTimerRef.current);
+        stargazerTimerRef.current = null;
+      }
+    };
+  }, [gameState.phase]);
+
   // Handle game over
   useEffect(() => {
     if (gameState.phase === "gameover") {
@@ -1545,6 +1599,16 @@ export default function SpaceShooter3D() {
     gameData.current.rapidFireUntil = 0;
     setRapidFireUntil(0);
     setBossHpDisplay({ hp: 0, maxHp: 0, active: false });
+    // Reset secret tracking
+    nukesUsedRef.current = 0;
+    bulletsFireRef.current = 0;
+    secretNukeFiredRef.current = false;
+    secretBulletFiredRef.current = false;
+    // Cancel stargazer timer when game starts
+    if (stargazerTimerRef.current) {
+      clearTimeout(stargazerTimerRef.current);
+      stargazerTimerRef.current = null;
+    }
     setGameState({
       phase: "playing",
       score: 0,

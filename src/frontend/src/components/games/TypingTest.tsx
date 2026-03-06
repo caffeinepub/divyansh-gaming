@@ -101,6 +101,17 @@ export default function TypingTest() {
 
       // Check completion
       if (val === phrase) {
+        // Secret: Speed Reader — completed with 100% accuracy (zero errors)
+        if (
+          totalCharsRef.current === val.length &&
+          correctCharsRef.current === val.length
+        ) {
+          window.dispatchEvent(
+            new CustomEvent("secret-trigger", {
+              detail: { id: "secret_speed_reader" },
+            }),
+          );
+        }
         endGame(currWpm, acc);
       }
     },

@@ -201,6 +201,7 @@ export default function AIChatBot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const ariaMessageCount = useRef(1); // greeting is index 0
+  const toggleTimestampsRef = useRef<number[]>([]);
 
   // Listen for custom open event (from nav link)
   useEffect(() => {
@@ -674,6 +675,23 @@ export default function AIChatBot() {
               zIndex: 2,
             }}
             onClick={() => {
+              // Track rapid toggle for ARIA Clicker secret achievement
+              const now = Date.now();
+              const timestamps = [...toggleTimestampsRef.current, now].slice(
+                -5,
+              );
+              toggleTimestampsRef.current = timestamps;
+              if (
+                timestamps.length === 5 &&
+                timestamps[4] - timestamps[0] < 5000
+              ) {
+                toggleTimestampsRef.current = [];
+                window.dispatchEvent(
+                  new CustomEvent("secret-trigger", {
+                    detail: { id: "secret_clicker" },
+                  }),
+                );
+              }
               setIsOpen((prev) => {
                 if (!prev) {
                   playChatOpen();

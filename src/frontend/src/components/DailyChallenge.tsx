@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { awardXP } from "../hooks/useXPSystem";
 
 interface Challenge {
   id: string;
@@ -376,6 +377,7 @@ export default function DailyChallenge() {
       /* ignore */
     }
     setCompleted(true);
+    awardXP(150, "Daily Challenge");
   };
 
   const diff = getDifficultyStyle(challenge.difficulty);
