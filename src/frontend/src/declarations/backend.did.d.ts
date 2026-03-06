@@ -21,8 +21,10 @@ export interface Game {
 export interface LeaderboardEntry {
   'rank' : bigint,
   'score' : bigint,
+  'timestamp' : string,
   'playerName' : string,
   'gameName' : string,
+  'avatar' : string,
 }
 export interface NewsPost {
   'id' : bigint,
@@ -36,7 +38,13 @@ export interface _SERVICE {
   'addNewsPost' : ActorMethod<[NewsPost], undefined>,
   'getGames' : ActorMethod<[], Array<Game>>,
   'getLeaderboard' : ActorMethod<[], Array<LeaderboardEntry>>,
+  'getLeaderboardByRank' : ActorMethod<[], Array<LeaderboardEntry>>,
   'getNews' : ActorMethod<[], Array<NewsPost>>,
+  'getTopLeaderboard' : ActorMethod<[bigint], Array<LeaderboardEntry>>,
+  'submitScore' : ActorMethod<
+    [string, bigint, string, string, string],
+    Array<LeaderboardEntry>
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

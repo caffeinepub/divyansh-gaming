@@ -19,8 +19,10 @@ export const Game = IDL.Record({
 export const LeaderboardEntry = IDL.Record({
   'rank' : IDL.Nat,
   'score' : IDL.Nat,
+  'timestamp' : IDL.Text,
   'playerName' : IDL.Text,
   'gameName' : IDL.Text,
+  'avatar' : IDL.Text,
 });
 export const NewsPost = IDL.Record({
   'id' : IDL.Nat,
@@ -35,7 +37,18 @@ export const idlService = IDL.Service({
   'addNewsPost' : IDL.Func([NewsPost], [], []),
   'getGames' : IDL.Func([], [IDL.Vec(Game)], ['query']),
   'getLeaderboard' : IDL.Func([], [IDL.Vec(LeaderboardEntry)], ['query']),
+  'getLeaderboardByRank' : IDL.Func([], [IDL.Vec(LeaderboardEntry)], ['query']),
   'getNews' : IDL.Func([], [IDL.Vec(NewsPost)], ['query']),
+  'getTopLeaderboard' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(LeaderboardEntry)],
+      ['query'],
+    ),
+  'submitScore' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Vec(LeaderboardEntry)],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -52,8 +65,10 @@ export const idlFactory = ({ IDL }) => {
   const LeaderboardEntry = IDL.Record({
     'rank' : IDL.Nat,
     'score' : IDL.Nat,
+    'timestamp' : IDL.Text,
     'playerName' : IDL.Text,
     'gameName' : IDL.Text,
+    'avatar' : IDL.Text,
   });
   const NewsPost = IDL.Record({
     'id' : IDL.Nat,
@@ -68,7 +83,22 @@ export const idlFactory = ({ IDL }) => {
     'addNewsPost' : IDL.Func([NewsPost], [], []),
     'getGames' : IDL.Func([], [IDL.Vec(Game)], ['query']),
     'getLeaderboard' : IDL.Func([], [IDL.Vec(LeaderboardEntry)], ['query']),
+    'getLeaderboardByRank' : IDL.Func(
+        [],
+        [IDL.Vec(LeaderboardEntry)],
+        ['query'],
+      ),
     'getNews' : IDL.Func([], [IDL.Vec(NewsPost)], ['query']),
+    'getTopLeaderboard' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(LeaderboardEntry)],
+        ['query'],
+      ),
+    'submitScore' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Vec(LeaderboardEntry)],
+        [],
+      ),
   });
 };
 

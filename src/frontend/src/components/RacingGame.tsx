@@ -1,4 +1,14 @@
-import { Car, ChevronLeft, ChevronRight, Heart, RotateCcw } from "lucide-react";
+import {
+  Car,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Loader2,
+  RotateCcw,
+  Trophy,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useActor } from "../hooks/useActor";
 import {
@@ -549,6 +559,14 @@ export default function RacingGame() {
   const scoreSubmittedRef = useRef(false);
   const { actor } = useActor();
 
+  // ── Score submission state ──
+  const [showPostScore, setShowPostScore] = useState(false);
+  const [postName, setPostName] = useState("");
+  const [postStatus, setPostStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [postedRank, setPostedRank] = useState<number | null>(null);
+
   // Game state stored in refs so the game loop can access them without stale closures
   const stateRef = useRef({
     playerLane: 1,
@@ -595,6 +613,8 @@ export default function RacingGame() {
           score: BigInt(finalScore),
           playerName: "Divyansh Gamer",
           gameName: "Car Racing",
+          timestamp: new Date().toISOString(),
+          avatar: "",
         });
       } catch (_e) {
         // Silently ignore backend errors
@@ -1020,12 +1040,142 @@ export default function RacingGame() {
           <button
             type="button"
             className="flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-bold tracking-widest uppercase gaming-btn-primary"
-            onClick={startGame}
+            onClick={() => {
+              startGame();
+              setShowPostScore(false);
+              setPostStatus("idle");
+              setPostName("");
+              setPostedRank(null);
+            }}
             aria-label="Play Again"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Play Again
           </button>
+        )}
+        {phase === "over" && (
+          <AnimatePresence mode="wait">
+            {postStatus === "success" ? (
+              <motion.div
+                key="racing-post-success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded"
+                style={{
+                  background: "rgba(0,229,255,0.08)",
+                  border: "1px solid rgba(0,229,255,0.35)",
+                }}
+                data-ocid="racing.success_state"
+              >
+                <CheckCircle
+                  className="w-3.5 h-3.5"
+                  style={{ color: "#00e5ff" }}
+                />
+                <span
+                  className="font-mono text-xs font-bold"
+                  style={{ color: "#00e5ff" }}
+                >
+                  Posted! Rank #{postedRank}
+                </span>
+              </motion.div>
+            ) : showPostScore ? (
+              <motion.form
+                key="racing-post-form"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!postName.trim() || !actor) return;
+                  setPostStatus("loading");
+                  try {
+                    const updated = await actor.submitScore(
+                      postName.trim(),
+                      BigInt(displayScore),
+                      "Car Racing",
+                      new Date().toISOString(),
+                      localStorage.getItem("dg_player_avatar") ?? "",
+                    );
+                    const myEntry = updated.find(
+                      (en) => en.playerName === postName.trim(),
+                    );
+                    setPostedRank(myEntry ? Number(myEntry.rank) : null);
+                    setPostStatus("success");
+                  } catch {
+                    setPostStatus("error");
+                  }
+                }}
+              >
+                <input
+                  type="text"
+                  value={postName}
+                  onChange={(e) => setPostName(e.target.value.slice(0, 20))}
+                  placeholder="Your name..."
+                  maxLength={20}
+                  required
+                  className="px-2.5 py-1.5 rounded text-xs font-mono outline-none"
+                  style={{
+                    background: "rgba(0,5,20,0.8)",
+                    border: "1px solid rgba(0,229,255,0.3)",
+                    color: "#e0f7ff",
+                    width: 120,
+                  }}
+                  data-ocid="racing.input"
+                />
+                <button
+                  type="submit"
+                  disabled={postStatus === "loading" || !postName.trim()}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold tracking-wider uppercase"
+                  style={{
+                    background: "rgba(0,229,255,0.12)",
+                    border: "1px solid rgba(0,229,255,0.4)",
+                    color: "#00e5ff",
+                  }}
+                  data-ocid="racing.submit_button"
+                >
+                  {postStatus === "loading" ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Trophy className="w-3 h-3" />
+                  )}
+                  Go
+                </button>
+              </motion.form>
+            ) : (
+              <motion.button
+                key="racing-post-trigger"
+                type="button"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold tracking-widest uppercase"
+                style={{
+                  background: "rgba(0,229,255,0.08)",
+                  border: "1px solid rgba(0,229,255,0.3)",
+                  color: "#00e5ff",
+                }}
+                onClick={() => {
+                  setShowPostScore(true);
+                  setPostStatus("idle");
+                }}
+                data-ocid="racing.post_score_button"
+              >
+                <Trophy className="w-3.5 h-3.5" />
+                Post Score
+              </motion.button>
+            )}
+          </AnimatePresence>
+        )}
+        {phase === "over" && postStatus === "error" && (
+          <span
+            className="font-mono text-xs"
+            style={{ color: "#ff6060" }}
+            data-ocid="racing.error_state"
+          >
+            Failed to post
+          </span>
         )}
       </div>
 

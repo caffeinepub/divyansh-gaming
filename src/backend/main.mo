@@ -1,9 +1,11 @@
 import List "mo:core/List";
+import Nat "mo:core/Nat";
 import Text "mo:core/Text";
-import Iter "mo:core/Iter";
 import Array "mo:core/Array";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
+
+
 
 actor {
   public type Game = {
@@ -17,7 +19,10 @@ actor {
 
   module Game {
     public func compare(game1 : Game, game2 : Game) : Order.Order {
-      Nat.compare(game1.id, game2.id);
+      switch (Nat.compare(game1.id, game2.id)) {
+        case (#equal) { Text.compare(game1.title, game2.title) };
+        case (order) { order };
+      };
     };
   };
 
@@ -26,13 +31,29 @@ actor {
     score : Nat;
     rank : Nat;
     gameName : Text;
+    timestamp : Text;
+    avatar : Text;
   };
 
   module LeaderboardEntry {
     public func compare(entry1 : LeaderboardEntry, entry2 : LeaderboardEntry) : Order.Order {
-      switch (Nat.compare(entry1.rank, entry2.rank)) {
+      switch (Nat.compare(entry1.score, entry2.score)) {
         case (#equal) { Text.compare(entry1.playerName, entry2.playerName) };
-	      case (order) { order };
+        case (order) { order };
+      };
+    };
+
+    public func compareByRank(a : LeaderboardEntry, b : LeaderboardEntry) : Order.Order {
+      switch (Nat.compare(a.rank, b.rank)) {
+        case (#equal) { Text.compare(a.playerName, b.playerName) };
+        case (order) { order };
+      };
+    };
+
+    public func compareByScoreDescending(a : LeaderboardEntry, b : LeaderboardEntry) : Order.Order {
+      switch (Nat.compare(b.score, a.score)) {
+        case (#equal) { Text.compare(a.playerName, b.playerName) };
+        case (order) { order };
       };
     };
   };
@@ -46,7 +67,10 @@ actor {
 
   module NewsPost {
     public func compare(post1 : NewsPost, post2 : NewsPost) : Order.Order {
-      Nat.compare(post1.id, post2.id);
+      switch (Nat.compare(post1.id, post2.id)) {
+        case (#equal) { Text.compare(post1.title, post2.title) };
+        case (order) { order };
+      };
     };
   };
 
@@ -54,165 +78,30 @@ actor {
   let leaderboardList = List.empty<LeaderboardEntry>();
   let newsList = List.empty<NewsPost>();
 
-  // Populate with sample data (called at deployment)
-  system func preupgrade() {};
-  system func postupgrade() {
-    // Games
-    gamesList.add({
-      id = 1;
-      title = "Super Action Hero";
-      genre = "Action";
-      description = "Amazing action-packed adventure.";
-      rating = 9;
-      imageUrl = "super-action-hero.png";
-    });
-    gamesList.add({
-      id = 2;
-      title = "Fantasy RPG";
-      genre = "RPG";
-      description = "Explore a mystical world of magic and monsters.";
-      rating = 8;
-      imageUrl = "fantasy-rpg.png";
-    });
-    gamesList.add({
-      id = 3;
-      title = "Soccer Star";
-      genre = "Sports";
-      description = "Become a soccer legend.";
-      rating = 7;
-      imageUrl = "soccer-star.png";
-    });
-    gamesList.add({
-      id = 4;
-      title = "Speed Racer";
-      genre = "Racing";
-      description = "Race at breakneck speeds.";
-      rating = 8;
-      imageUrl = "speed-racer.png";
-    });
-    gamesList.add({
-      id = 5;
-      title = "Strategy Master";
-      genre = "Strategy";
-      description = "Test your planning and tactics.";
-      rating = 9;
-      imageUrl = "strategy-master.png";
-    });
-    gamesList.add({
-      id = 6;
-      title = "FPS Elite";
-      genre = "FPS";
-      description = "First-person shooter action.";
-      rating = 8;
-      imageUrl = "fps-elite.png";
-    });
-
-    // Leaderboard
-    leaderboardList.add({
-      playerName = "Alice";
-      score = 10000;
-      rank = 1;
-      gameName = "Super Action Hero";
-    });
-    leaderboardList.add({
-      playerName = "Bob";
-      score = 9500;
-      rank = 2;
-      gameName = "Super Action Hero";
-    });
-    leaderboardList.add({
-      playerName = "Charlie";
-      score = 9000;
-      rank = 3;
-      gameName = "Fantasy RPG";
-    });
-    leaderboardList.add({
-      playerName = "Diana";
-      score = 8500;
-      rank = 4;
-      gameName = "Soccer Star";
-    });
-    leaderboardList.add({
-      playerName = "Ethan";
-      score = 8000;
-      rank = 5;
-      gameName = "Speed Racer";
-    });
-    leaderboardList.add({
-      playerName = "Felix";
-      score = 7800;
-      rank = 6;
-      gameName = "Strategy Master";
-    });
-    leaderboardList.add({
-      playerName = "Grace";
-      score = 7600;
-      rank = 7;
-      gameName = "Fantasy RPG";
-    });
-    leaderboardList.add({
-      playerName = "Hank";
-      score = 7500;
-      rank = 8;
-      gameName = "Soccer Star";
-    });
-    leaderboardList.add({
-      playerName = "Irene";
-      score = 7400;
-      rank = 9;
-      gameName = "Speed Racer";
-    });
-    leaderboardList.add({
-      playerName = "Jack";
-      score = 7300;
-      rank = 10;
-      gameName = "FPS Elite";
-    });
-
-    // News
-    newsList.add({
-      id = 1;
-      title = "Welcome to DIVYANSH GAMING!";
-      summary = "The ultimate gaming destination launches today.";
-      date = "2023-03-01";
-    });
-    newsList.add({
-      id = 2;
-      title = "New Games Added";
-      summary = "Check out the latest titles in our library.";
-      date = "2023-03-05";
-    });
-    newsList.add({
-      id = 3;
-      title = "Leaderboard Updated";
-      summary = "See who's topping the charts this week.";
-      date = "2023-03-10";
-    });
-    newsList.add({
-      id = 4;
-      title = "Upcoming Tournaments";
-      summary = "Get ready to compete in our upcoming events.";
-      date = "2023-03-15";
-    });
-  };
-
-  // Query Functions
   public query ({ caller }) func getGames() : async [Game] {
     gamesList.toArray().sort();
   };
 
   public query ({ caller }) func getLeaderboard() : async [LeaderboardEntry] {
-    leaderboardList.toArray().sort();
+    leaderboardList.toArray().sort<LeaderboardEntry>(LeaderboardEntry.compareByScoreDescending);
   };
 
   public query ({ caller }) func getNews() : async [NewsPost] {
     newsList.toArray().sort();
   };
 
-  // Update Functions (For Admin)
+  public query ({ caller }) func getTopLeaderboard(limit : Nat) : async [LeaderboardEntry] {
+    let sorted = leaderboardList.toArray().sort(LeaderboardEntry.compareByScoreDescending);
+    sorted.sliceToArray(0, Nat.min(sorted.size(), limit));
+  };
+
+  public query ({ caller }) func getLeaderboardByRank() : async [LeaderboardEntry] {
+    leaderboardList.toArray().sort<LeaderboardEntry>(LeaderboardEntry.compareByRank);
+  };
+
   public shared ({ caller }) func addGame(game : Game) : async () {
     if (gamesList.values().any(func(g) { g.id == game.id })) {
-      Runtime.trap("There is already a game with id " # game.id.toText() # ".");
+      Runtime.trap("Game with ID " # game.id.toText() # " already exists.");
     };
     gamesList.add(game);
   };
@@ -226,5 +115,89 @@ actor {
       Runtime.trap("A news post with id " # post.id.toText() # " already exists.");
     };
     newsList.add(post);
+  };
+
+  public shared ({ caller }) func submitScore(
+    playerName : Text,
+    score : Nat,
+    gameName : Text,
+    timestamp : Text,
+    avatar : Text,
+  ) : async [LeaderboardEntry] {
+    let array = leaderboardList.toArray();
+    var existingIndex : ?Nat = null;
+    var i = 0;
+    while (i < array.size() and existingIndex == null) {
+      if (array[i].playerName == playerName and array[i].gameName == gameName) {
+        existingIndex := ?i;
+      };
+      i += 1;
+    };
+
+    switch (existingIndex) {
+      case (null) {
+        let newEntry = {
+          playerName;
+          score;
+          rank = 0;
+          gameName;
+          timestamp;
+          avatar = avatar;
+        };
+        leaderboardList.add(newEntry);
+      };
+      case (?index) {
+        let entriesArray = array;
+        let current = entriesArray[index];
+        if (score > current.score) {
+          let updatedArray = Array.tabulate(
+            entriesArray.size(),
+            func(i) {
+              if (i == index) {
+                {
+                  playerName;
+                  score;
+                  rank = 0;
+                  gameName;
+                  timestamp;
+                  avatar = avatar;
+                };
+              } else {
+                entriesArray[i];
+              };
+            },
+          );
+          leaderboardList.clear();
+          leaderboardList.addAll(updatedArray.values());
+        };
+      };
+    };
+
+    recalculateRanks();
+    leaderboardList.toArray().sort<LeaderboardEntry>(LeaderboardEntry.compareByScoreDescending);
+  };
+
+  func recalculateRanks() {
+    let sortedEntries = leaderboardList.toArray().sort(LeaderboardEntry.compareByScoreDescending);
+    var lastScore = 0 : Nat;
+    var currentRank = 1 : Nat;
+    let updatedEntries = Array.tabulate(
+      sortedEntries.size(),
+      func(i) {
+        let entry = sortedEntries[i];
+        let rank = if (entry.score == lastScore) {
+          currentRank - 1;
+        } else {
+          lastScore := entry.score;
+          currentRank += 1;
+          currentRank - 1;
+        };
+        {
+          entry with rank;
+        };
+      },
+    );
+    leaderboardList.clear();
+    leaderboardList.addAll(updatedEntries.values());
   };
 };

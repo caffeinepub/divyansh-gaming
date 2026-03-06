@@ -2,6 +2,7 @@ import { Gamepad2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { playClick, playGameStart } from "../hooks/useSoundEffects";
+import ScoreSubmitModal from "./ScoreSubmitModal";
 import AsteroidShooter from "./games/AsteroidShooter";
 import BrickBreaker from "./games/BrickBreaker";
 import ColorMatch from "./games/ColorMatch";
@@ -127,7 +128,15 @@ const MINI_GAMES: MiniGame[] = [
 ];
 
 // ── Game Modal ──────────────────────────────────────────────────────────────────
-function GameModal({ game, onClose }: { game: MiniGame; onClose: () => void }) {
+function GameModal({
+  game,
+  onClose,
+  onPostScore,
+}: {
+  game: MiniGame;
+  onClose: () => void;
+  onPostScore: (gameName: string) => void;
+}) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const GameComponent = game.component;
 
@@ -205,38 +214,58 @@ function GameModal({ game, onClose }: { game: MiniGame; onClose: () => void }) {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            data-ocid="minigames.close_button"
-            onClick={() => {
-              playClick();
-              onClose();
-            }}
-            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200"
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "rgba(255,255,255,0.5)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "rgba(255,68,102,0.2)";
-              (e.currentTarget as HTMLButtonElement).style.borderColor =
-                "rgba(255,68,102,0.5)";
-              (e.currentTarget as HTMLButtonElement).style.color = "#ff4466";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "rgba(255,255,255,0.06)";
-              (e.currentTarget as HTMLButtonElement).style.borderColor =
-                "rgba(255,255,255,0.12)";
-              (e.currentTarget as HTMLButtonElement).style.color =
-                "rgba(255,255,255,0.5)";
-            }}
-            aria-label="Close game"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Post Score button */}
+            <button
+              type="button"
+              data-ocid="minigames.post_score_button"
+              onClick={() => {
+                playClick();
+                onPostScore(game.title);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold tracking-widest uppercase transition-all duration-200"
+              style={{
+                background: "rgba(0,229,255,0.08)",
+                border: "1px solid rgba(0,229,255,0.3)",
+                color: "#00e5ff",
+              }}
+              aria-label="Post your score to leaderboard"
+            >
+              🏆 Post Score
+            </button>
+            <button
+              type="button"
+              data-ocid="minigames.close_button"
+              onClick={() => {
+                playClick();
+                onClose();
+              }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "rgba(255,255,255,0.5)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(255,68,102,0.2)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(255,68,102,0.5)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#ff4466";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(255,255,255,0.12)";
+                (e.currentTarget as HTMLButtonElement).style.color =
+                  "rgba(255,255,255,0.5)";
+              }}
+              aria-label="Close game"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Divider */}
@@ -357,8 +386,15 @@ function MiniGameCard({
 // ── MiniGamesSection ────────────────────────────────────────────────────────────
 export default function MiniGamesSection() {
   const [activeGame, setActiveGame] = useState<MiniGame | null>(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitGameName, setSubmitGameName] = useState<string>("");
 
   const handleClose = useCallback(() => setActiveGame(null), []);
+
+  const handlePostScore = useCallback((gameName: string) => {
+    setSubmitGameName(gameName);
+    setShowSubmitModal(true);
+  }, []);
 
   return (
     <section id="mini-games" className="relative py-24 overflow-hidden">
@@ -428,8 +464,22 @@ export default function MiniGamesSection() {
 
       {/* Game modal */}
       <AnimatePresence>
-        {activeGame && <GameModal game={activeGame} onClose={handleClose} />}
+        {activeGame && (
+          <GameModal
+            game={activeGame}
+            onClose={handleClose}
+            onPostScore={handlePostScore}
+          />
+        )}
       </AnimatePresence>
+
+      {/* Score Submit Modal */}
+      <ScoreSubmitModal
+        open={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        defaultGame={submitGameName || undefined}
+        onSuccess={() => setShowSubmitModal(false)}
+      />
     </section>
   );
 }

@@ -92,8 +92,10 @@ export class ExternalBlob {
 export interface LeaderboardEntry {
     rank: bigint;
     score: bigint;
+    timestamp: string;
     playerName: string;
     gameName: string;
+    avatar: string;
 }
 export interface Game {
     id: bigint;
@@ -115,7 +117,10 @@ export interface backendInterface {
     addNewsPost(post: NewsPost): Promise<void>;
     getGames(): Promise<Array<Game>>;
     getLeaderboard(): Promise<Array<LeaderboardEntry>>;
+    getLeaderboardByRank(): Promise<Array<LeaderboardEntry>>;
     getNews(): Promise<Array<NewsPost>>;
+    getTopLeaderboard(limit: bigint): Promise<Array<LeaderboardEntry>>;
+    submitScore(playerName: string, score: bigint, gameName: string, timestamp: string, avatar: string): Promise<Array<LeaderboardEntry>>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -189,6 +194,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getLeaderboardByRank(): Promise<Array<LeaderboardEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getLeaderboardByRank();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getLeaderboardByRank();
+            return result;
+        }
+    }
     async getNews(): Promise<Array<NewsPost>> {
         if (this.processError) {
             try {
@@ -200,6 +219,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getNews();
+            return result;
+        }
+    }
+    async getTopLeaderboard(arg0: bigint): Promise<Array<LeaderboardEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTopLeaderboard(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTopLeaderboard(arg0);
+            return result;
+        }
+    }
+    async submitScore(arg0: string, arg1: bigint, arg2: string, arg3: string, arg4: string): Promise<Array<LeaderboardEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.submitScore(arg0, arg1, arg2, arg3, arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.submitScore(arg0, arg1, arg2, arg3, arg4);
             return result;
         }
     }

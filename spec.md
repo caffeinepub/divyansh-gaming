@@ -1,38 +1,30 @@
-# DIVYANSH GAMING — Full 3D Upgrade
+# DIVYANSH GAMING
 
 ## Current State
-- Full gaming website with: hero section, games grid, car racing game, 10 mini games, leaderboard, news, positive thoughts, AI chatbot, glowing crosshair cursor, sound effects, animated live wallpaper (canvas 2D: star warp tunnel, perspective grid, laser streaks)
-- Background: `LiveWallpaper.tsx` — 2D canvas with warp stars, perspective grid floor, laser streaks
-- Sections: 2D flat layouts with framer-motion scroll animations, neon glow CSS effects
-- React Three Fiber (`@react-three/fiber`), `@react-three/drei`, `@react-three/cannon`, and `three` are already installed in package.json
+A full 3D gaming website with React Three Fiber background scene (warp stars, neon grid, floating gamepad, particle sparks), 10 mini games, car racing game, Space Shooter 3D, global leaderboard with player profiles/search/avatars, AI chatbot (ARIA), sound effects, glowing crosshair cursor, and positive thoughts section. The app is always in dark mode with a fixed cyan/violet/pink neon color scheme.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **3D Live Background** (`Scene3D.tsx`): Replace the `LiveWallpaper.tsx` 2D canvas with a full-screen React Three Fiber `<Canvas>` scene containing:
-  - Warp-speed star field (instanced mesh, 800 stars flying toward camera along Z)
-  - Neon perspective grid floor (custom `PlaneGeometry` + `LineSegments` or `GridHelper`) scrolling toward camera
-  - Floating 3D game controller model built from `BoxGeometry` / `SphereGeometry` primitives — glowing neon material, slowly rotating
-  - Particle system: random neon spark bursts drifting across the scene
-  - Bloom post-processing via `@react-three/postprocessing` (if available) or a custom emissive glow approach
-- **3D Hero Floating Text** (`Hero3DText.tsx`): The hero section's "DIVYANSH GAMING" title gets a 3D layered depth effect using CSS `transform: perspective()` + rotateX/rotateY on mouse move (pure CSS/JS, no R3F needed here — keep it performant)
-- **3D Game Cards** (`GameCard3D`): Cards in the games grid tilt in 3D on hover using CSS `perspective` + `rotateX/rotateY` driven by mouse position within the card
-- **3D Section Dividers**: Between each major section, add a thin 3D-looking neon divider line with a glowing orb traveling along it (CSS perspective transform)
-- **3D Floating Icons** in hero stats row: each stat (Active Players, Games Available, Tournaments Won) gets a small 3D-spinning icon rendered using inline CSS 3D transforms with `animation: spin3d`
+- **Animated Loading Screen**: Full-screen loading screen shown on first app mount with animated DIVYANSH GAMING logo (spinning gamepad, glowing title text, neon progress bar, particle burst), auto-dismisses after assets settle (~2.5s).
+- **Day/Night Mode Toggle**: Persisted in localStorage. Night mode = current dark cyberpunk theme. Day mode = lighter background (deep navy/indigo instead of near-black), softer neon glows, lighter card surfaces — still vibrant/gaming aesthetic.
+- **Custom Site Theme Selector**: Three neon accent themes selectable via a popover/panel in the navbar or a floating controls panel: Cyan (default), Red Neon, Green Neon, Purple Neon. Theme drives the primary accent color (--neon-primary) used across glows, borders, gradients, and 3D scene emissives. Persisted in localStorage.
+- **3D Lobby Scene Enhancements**: Expand Scene3D background with more 3D objects: floating trophy, orbiting gem crystals, a spinning DNA-helix-like strand of orbs, and a more dramatic lighting rig. Add a dedicated "3D Lobby" section (above the hero or as a full-height banner) showing the interactive R3F scene with camera mouse-parallax and rotating platform with floating objects.
 
 ### Modify
-- `LiveWallpaper.tsx`: Replace 2D canvas implementation with `Scene3D.tsx` R3F canvas (or keep LiveWallpaper as a thin wrapper that mounts Scene3D)
-- `App.tsx`: Import and use new 3D components; apply 3D card tilt to `GameCard`; add 3D section separators; hero stats get 3D icons; hero title gets 3D mouse-track perspective
-- `index.css`: Add CSS 3D utility classes: `.card-3d-tilt`, `.spin3d`, `.depth-text`, `@keyframes spin3d`
+- `App.tsx`: Add `ThemeProvider` context wrapping entire app. Inject CSS variables for the active theme accent into `:root`. Add loading screen before app renders. Add theme/mode controls to navbar.
+- `Scene3D.tsx`: Accept optional theme color prop to tint emissive materials. Add new 3D objects (trophy, crystals, helix strand).
+- `index.css`: Add day-mode CSS overrides and CSS custom properties for theme accent colors (red, green, purple, cyan variants).
 
 ### Remove
-- The 2D canvas star/grid/streak rendering code in `LiveWallpaper.tsx` (replaced by R3F scene)
+- Nothing removed.
 
 ## Implementation Plan
-1. Create `src/components/Scene3D.tsx` — full-screen R3F Canvas with: warp star field (InstancedMesh), neon grid plane, floating 3D controller model from primitives, particle sparks, bloom via `UnrealBloomPass` or emissive materials
-2. Replace `LiveWallpaper.tsx` contents to mount `Scene3D.tsx` in a fixed full-screen container at z-index 0
-3. Add CSS 3D tilt logic to `GameCard` in `App.tsx` — `onMouseMove` tracks pointer offset within card and applies `rotateX/rotateY` via inline style `transform: perspective(800px) rotateX(Xdeg) rotateY(Ydeg)`
-4. Add 3D hero title parallax: `HeroSection` listens to `mousemove` on `document`, applies `perspective(1200px) rotateX/rotateY` (max ±6deg) to the heading wrapper
-5. Add 3D spinning CSS icons to hero stats (use `@keyframes` rotate3d in index.css)
-6. Add section divider component with traveling glow orb between sections
-7. Validate typecheck + build; fix any errors
+1. Generate logo image for loading screen (gamepad + "DIVYANSH GAMING" text, dark bg).
+2. Create `ThemeContext.tsx` — exposes `{ theme, setTheme, isDark, setIsDark }` with localStorage persistence. Theme values: `cyan | red | green | purple`.
+3. Update `index.css` — add CSS vars for each theme accent (`--accent-*` sets), day-mode class overrides for background/surface colors.
+4. Create `LoadingScreen.tsx` — full-screen animated intro with logo, progress bar, particle burst, auto-dismiss.
+5. Create `ThemeControls.tsx` — compact floating panel (or inline in navbar) with day/night toggle switch and 4 theme color swatches.
+6. Update `Scene3D.tsx` — add trophy, orbiting crystals, helix strand objects; accept theme color prop for emissives.
+7. Update `App.tsx` — wrap with ThemeProvider, mount LoadingScreen, add ThemeControls to navbar area.
+8. Validate and deploy.

@@ -10,8 +10,10 @@ export type Option<T> = Some<T> | None;
 export interface LeaderboardEntry {
     rank: bigint;
     score: bigint;
+    timestamp: string;
     playerName: string;
     gameName: string;
+    avatar: string;
 }
 export interface Game {
     id: bigint;
@@ -33,5 +35,8 @@ export interface backendInterface {
     addNewsPost(post: NewsPost): Promise<void>;
     getGames(): Promise<Array<Game>>;
     getLeaderboard(): Promise<Array<LeaderboardEntry>>;
+    getLeaderboardByRank(): Promise<Array<LeaderboardEntry>>;
     getNews(): Promise<Array<NewsPost>>;
+    getTopLeaderboard(limit: bigint): Promise<Array<LeaderboardEntry>>;
+    submitScore(playerName: string, score: bigint, gameName: string, timestamp: string, avatar: string): Promise<Array<LeaderboardEntry>>;
 }

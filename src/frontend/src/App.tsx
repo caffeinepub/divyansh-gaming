@@ -14,10 +14,13 @@ import {
   ChevronDown,
   ExternalLink,
   Gamepad2,
+  Layers,
   Menu,
   Newspaper,
   Play,
   Quote,
+  Rocket,
+  Search,
   Shield,
   Star,
   Target,
@@ -26,14 +29,20 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
 import GlowingCrosshairCursor from "./components/GlowingCrosshairCursor";
-import LiveWallpaper from "./components/LiveWallpaper";
+import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
+import PlayerProfileModal from "./components/PlayerProfileModal";
 import RacingGame from "./components/RacingGame";
+import Scene3D, { LobbyCanvas } from "./components/Scene3D";
+import ScoreSubmitModal from "./components/ScoreSubmitModal";
 import SoundToggle from "./components/SoundToggle";
+import SpaceShooter3D from "./components/SpaceShooter3D";
+import ThemeControls from "./components/ThemeControls";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
 import { playClick, playHover } from "./hooks/useSoundEffects";
 
@@ -109,48 +118,64 @@ const FALLBACK_LEADERBOARD: LeaderboardEntry[] = [
     playerName: "XxDivyanshxX",
     gameName: "Ghost Protocol",
     score: BigInt(98750),
+    timestamp: "2026-02-28T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(2),
     playerName: "NeonReaper",
     gameName: "Neon Phantoms",
     score: BigInt(87420),
+    timestamp: "2026-02-27T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(3),
     playerName: "VoidStrike",
     gameName: "Void Corsairs",
     score: BigInt(75300),
+    timestamp: "2026-02-26T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(4),
     playerName: "ArcaneHunter",
     gameName: "Dragon's Ascent",
     score: BigInt(62100),
+    timestamp: "2026-02-25T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(5),
     playerName: "TurboBlaze",
     gameName: "Hyperdrive X",
     score: BigInt(55890),
+    timestamp: "2026-02-24T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(6),
     playerName: "ShadowByte",
     gameName: "Ghost Protocol",
     score: BigInt(48600),
+    timestamp: "2026-02-23T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(7),
     playerName: "CyberPhantom",
     gameName: "Neon Phantoms",
     score: BigInt(41200),
+    timestamp: "2026-02-22T00:00:00.000Z",
+    avatar: "",
   },
   {
     rank: BigInt(8),
     playerName: "QuantumAce",
     gameName: "Void Corsairs",
     score: BigInt(38750),
+    timestamp: "2026-02-21T00:00:00.000Z",
+    avatar: "",
   },
 ];
 
@@ -338,6 +363,11 @@ function Navbar() {
   const links = [
     { label: "Home", href: "#hero", icon: <Zap className="w-3.5 h-3.5" /> },
     {
+      label: "Lobby",
+      href: "#lobby",
+      icon: <Layers className="w-3.5 h-3.5" />,
+    },
+    {
       label: "Games",
       href: "#games",
       icon: <Gamepad2 className="w-3.5 h-3.5" />,
@@ -351,6 +381,11 @@ function Navbar() {
       label: "Mini Games",
       href: "#mini-games",
       icon: <Gamepad2 className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "3D Game",
+      href: "#3d-game",
+      icon: <Rocket className="w-3.5 h-3.5" />,
     },
     {
       label: "Leaderboard",
@@ -1030,6 +1065,70 @@ function RacingGameSection() {
   );
 }
 
+// ─── 3D Space Shooter Section ─────────────────────────────────────────────────
+function SpaceShooter3DSection() {
+  return (
+    <section
+      id="3d-game"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.07 0.02 240 / 0.8)" }}
+    >
+      {/* Decorative glows */}
+      <div
+        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(var(--neon-cyan))" }}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-6"
+        style={{ background: "oklch(var(--neon-violet))" }}
+      />
+
+      <div className="container px-4 md:px-6 relative z-10">
+        {/* Section header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(var(--neon-cyan) / 0.08)",
+              border: "1px solid oklch(var(--neon-cyan) / 0.3)",
+              color: "oklch(var(--neon-cyan))",
+            }}
+          >
+            <Rocket className="w-3 h-3" />
+            3D Playable Game
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Space{" "}
+            <span className="gradient-text-gaming glow-cyan">Shooter 3D</span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            A fully playable 3D space shooter built with React Three Fiber. Move
+            your mouse to pilot your ship, hold Space or click to fire. Survive
+            the waves!
+          </p>
+        </motion.div>
+
+        {/* Game */}
+        <motion.div
+          className="flex justify-center"
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <SpaceShooter3D />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Rank badge ───────────────────────────────────────────────────────────────
 function RankBadge({ rank }: { rank: bigint }) {
   const r = Number(rank);
@@ -1077,9 +1176,61 @@ function RankBadge({ rank }: { rank: bigint }) {
 function LeaderboardSection() {
   const { data: lbData, isLoading } = useGetLeaderboard();
   const entries = lbData && lbData.length > 0 ? lbData : FALLBACK_LEADERBOARD;
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [highlightedPlayer, setHighlightedPlayer] = useState<string | null>(
+    null,
+  );
+  const [selectedGame, setSelectedGame] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [selectedPlayerAvatar, setSelectedPlayerAvatar] = useState<string>("");
 
-  const rowStyle = (rank: bigint) => {
+  // Sorted unique game names from all entries
+  const gameNames = useMemo<string[]>(() => {
+    const names = new Set(entries.map((e) => e.gameName));
+    return Array.from(names).sort();
+  }, [entries]);
+
+  // Filtered + re-ranked entries for display
+  const filteredEntries = useMemo<LeaderboardEntry[]>(() => {
+    if (searchQuery.trim() !== "") {
+      // Cross-game player search: ignore game filter
+      return entries.filter((e) =>
+        e.playerName.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    }
+    if (selectedGame === "All") return entries;
+    return entries
+      .filter((e) => e.gameName === selectedGame)
+      .map((e, idx) => ({ ...e, rank: BigInt(idx + 1) }));
+  }, [entries, selectedGame, searchQuery]);
+
+  const handleSubmitSuccess = (
+    updatedLB: LeaderboardEntry[],
+    submittedName?: string,
+  ) => {
+    if (submittedName) {
+      setHighlightedPlayer(submittedName);
+      setTimeout(() => setHighlightedPlayer(null), 5000);
+    } else if (updatedLB.length > 0) {
+      // fallback: highlight rank 1 player briefly
+      setHighlightedPlayer(updatedLB[0].playerName);
+      setTimeout(() => setHighlightedPlayer(null), 5000);
+    }
+  };
+
+  const rowStyle = (rank: bigint, playerName: string) => {
     const r = Number(rank);
+    const isHighlighted = highlightedPlayer && playerName === highlightedPlayer;
+
+    if (isHighlighted) {
+      return {
+        background: "oklch(0.82 0.18 200 / 0.12)",
+        borderLeft: "3px solid oklch(0.82 0.18 200 / 0.9)",
+        boxShadow: "0 0 20px oklch(0.82 0.18 200 / 0.15) inset",
+        transition: "all 0.5s ease",
+      };
+    }
     if (r === 1)
       return {
         background: "oklch(var(--gold) / 0.06)",
@@ -1143,10 +1294,150 @@ function LeaderboardSection() {
               Champions
             </span>
           </h2>
-          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+          <p className="font-body text-foreground/50 max-w-xl mx-auto mb-6">
             The elite players who have risen to the pinnacle of the DIVYANSH
-            GAMING leaderboard.
+            GAMING leaderboard. Filter by game to see the top champions for each
+            title.
           </p>
+          {/* Post Your Score CTA */}
+          <motion.button
+            type="button"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded font-display font-bold text-sm tracking-widest uppercase transition-all duration-200"
+            style={{
+              background: "oklch(0.82 0.18 200 / 0.12)",
+              border: "1.5px solid oklch(0.82 0.18 200 / 0.45)",
+              color: "oklch(0.82 0.18 200)",
+              boxShadow: "0 0 20px oklch(0.82 0.18 200 / 0.15)",
+            }}
+            whileHover={{
+              boxShadow: "0 0 32px oklch(0.82 0.18 200 / 0.3)",
+              scale: 1.03,
+            }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              playClick();
+              setShowSubmitModal(true);
+            }}
+            onMouseEnter={() => playHover()}
+            data-ocid="leaderboard.post_score_button"
+          >
+            <Trophy className="w-4 h-4" />
+            Post Your Score
+          </motion.button>
+
+          {/* Per-game filter pills */}
+          <div className="overflow-x-auto pb-2 mt-6">
+            <div className="flex items-center gap-2 justify-center flex-wrap min-w-max mx-auto px-1">
+              {/* "All Games" pill */}
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded-full text-xs font-mono tracking-widest uppercase transition-all duration-200 whitespace-nowrap"
+                style={
+                  selectedGame === "All"
+                    ? {
+                        background: "oklch(var(--neon-violet) / 0.18)",
+                        border: "1.5px solid oklch(var(--neon-violet) / 0.8)",
+                        color: "oklch(var(--neon-violet))",
+                        boxShadow: "0 0 12px oklch(var(--neon-violet) / 0.3)",
+                      }
+                    : {
+                        background: "transparent",
+                        border: "1.5px solid oklch(var(--border))",
+                        color: "oklch(var(--foreground) / 0.5)",
+                      }
+                }
+                onClick={() => {
+                  setSelectedGame("All");
+                  playClick();
+                }}
+                onMouseEnter={() => playHover()}
+                data-ocid="leaderboard.all_games.tab"
+              >
+                All Games
+              </button>
+
+              {/* Per-game pills */}
+              {gameNames.map((name, n) => (
+                <button
+                  key={name}
+                  type="button"
+                  className="px-3 py-1.5 rounded-full text-xs font-mono tracking-widest uppercase transition-all duration-200 whitespace-nowrap"
+                  style={
+                    selectedGame === name
+                      ? {
+                          background: "oklch(var(--neon-violet) / 0.18)",
+                          border: "1.5px solid oklch(var(--neon-violet) / 0.8)",
+                          color: "oklch(var(--neon-violet))",
+                          boxShadow: "0 0 12px oklch(var(--neon-violet) / 0.3)",
+                        }
+                      : {
+                          background: "transparent",
+                          border: "1.5px solid oklch(var(--border))",
+                          color: "oklch(var(--foreground) / 0.5)",
+                        }
+                  }
+                  onClick={() => {
+                    setSelectedGame(name);
+                    playClick();
+                  }}
+                  onMouseEnter={() => playHover()}
+                  data-ocid={`leaderboard.filter.tab.${n + 1}`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Player search bar */}
+          <div className="mt-6 relative">
+            <div
+              className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
+              style={{
+                background: "oklch(0.12 0.03 295 / 0.8)",
+                border: "1.5px solid oklch(var(--neon-violet) / 0.3)",
+                boxShadow: "0 0 0 0 oklch(var(--neon-violet) / 0)",
+              }}
+              onFocusCapture={(e) => {
+                (e.currentTarget as HTMLDivElement).style.borderColor =
+                  "oklch(var(--neon-violet) / 0.7)";
+                (e.currentTarget as HTMLDivElement).style.boxShadow =
+                  "0 0 18px oklch(var(--neon-violet) / 0.2)";
+              }}
+              onBlurCapture={(e) => {
+                (e.currentTarget as HTMLDivElement).style.borderColor =
+                  "oklch(var(--neon-violet) / 0.3)";
+                (e.currentTarget as HTMLDivElement).style.boxShadow =
+                  "0 0 0 0 oklch(var(--neon-violet) / 0)";
+              }}
+            >
+              <Search
+                className="w-4 h-4 shrink-0"
+                style={{ color: "oklch(var(--neon-violet) / 0.7)" }}
+              />
+              <input
+                type="text"
+                placeholder="Search player name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-sm font-mono placeholder:text-foreground/30"
+                style={{ color: "oklch(var(--foreground))" }}
+                data-ocid="leaderboard.search_input"
+              />
+              {searchQuery !== "" && (
+                <button
+                  type="button"
+                  className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full transition-colors duration-150 hover:bg-foreground/10"
+                  style={{ color: "oklch(var(--foreground) / 0.5)" }}
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                  data-ocid="leaderboard.search_clear.button"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
         </motion.div>
 
         {/* Leaderboard table */}
@@ -1162,13 +1453,16 @@ function LeaderboardSection() {
           transition={{ duration: 0.6 }}
         >
           {isLoading ? (
-            <div className="p-6 space-y-3">
+            <div
+              className="p-6 space-y-3"
+              data-ocid="leaderboard.loading_state"
+            >
               {["l1", "l2", "l3", "l4", "l5", "l6"].map((k) => (
                 <Skeleton key={k} className="h-14 w-full" />
               ))}
             </div>
           ) : (
-            <Table>
+            <Table data-ocid="leaderboard.table">
               <TableHeader>
                 <TableRow
                   style={{
@@ -1191,68 +1485,157 @@ function LeaderboardSection() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {entries.map((entry, idx) => (
-                  <motion.tr
-                    key={Number(entry.rank)}
-                    className="transition-colors hover:bg-foreground/3"
-                    style={rowStyle(entry.rank)}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: idx * 0.06 }}
-                  >
-                    <TableCell className="py-4">
-                      <RankBadge rank={entry.rank} />
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-black"
-                          style={{
-                            background: `oklch(${Number(entry.rank) <= 3 ? "var(--neon-violet)" : "var(--muted)"} / 0.3)`,
-                            border: `1px solid oklch(${Number(entry.rank) <= 3 ? "var(--neon-violet)" : "var(--border)"} / 0.4)`,
-                            color:
-                              Number(entry.rank) <= 3
-                                ? "oklch(var(--neon-violet))"
-                                : "oklch(var(--foreground) / 0.6)",
-                          }}
-                        >
-                          {entry.playerName.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-display font-bold text-sm text-foreground">
-                          {entry.playerName}
-                        </span>
+                {filteredEntries.length === 0 ? (
+                  <tr data-ocid="leaderboard.empty_state">
+                    <td colSpan={4} className="py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <Trophy className="w-10 h-10 text-foreground/20" />
+                        <p className="font-body text-sm text-foreground/40">
+                          {searchQuery.trim() !== ""
+                            ? `No player found matching "${searchQuery}"`
+                            : selectedGame === "All"
+                              ? "No scores yet. Be the first to post!"
+                              : `No scores yet for ${selectedGame}.`}
+                        </p>
                       </div>
-                    </TableCell>
-                    <TableCell className="py-4 hidden sm:table-cell">
-                      <span className="font-body text-sm text-foreground/60">
-                        {entry.gameName}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 text-right">
-                      <span
-                        className="font-mono font-bold text-sm"
-                        style={{
-                          color:
-                            Number(entry.rank) === 1
-                              ? "oklch(var(--gold))"
-                              : Number(entry.rank) === 2
-                                ? "oklch(var(--silver))"
-                                : Number(entry.rank) === 3
-                                  ? "oklch(var(--bronze))"
-                                  : "oklch(var(--neon-cyan) / 0.8)",
-                        }}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredEntries.map((entry, idx) => {
+                    const displayRank = entry.rank;
+                    const displayRankNum = Number(displayRank);
+                    return (
+                      <motion.tr
+                        key={`${String(entry.rank)}-${entry.playerName}-${idx}`}
+                        className="transition-colors hover:bg-foreground/3"
+                        style={rowStyle(displayRank, entry.playerName)}
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: idx * 0.06 }}
+                        data-ocid={`leaderboard.item.${idx + 1}`}
                       >
-                        {Number(entry.score).toLocaleString()}
-                      </span>
-                    </TableCell>
-                  </motion.tr>
-                ))}
+                        <TableCell className="py-4">
+                          <RankBadge rank={displayRank} />
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-3">
+                            {entry.avatar ? (
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0"
+                                title={entry.playerName}
+                                style={{
+                                  background: `oklch(${displayRankNum <= 3 ? "var(--neon-violet)" : "var(--muted)"} / 0.2)`,
+                                  border: `1px solid oklch(${displayRankNum <= 3 ? "var(--neon-violet)" : "var(--border)"} / 0.4)`,
+                                  filter:
+                                    displayRankNum <= 3
+                                      ? "drop-shadow(0 0 6px oklch(var(--neon-violet) / 0.5))"
+                                      : "none",
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {entry.avatar}
+                              </div>
+                            ) : (
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-black shrink-0"
+                                title={entry.playerName}
+                                style={{
+                                  background: `oklch(${displayRankNum <= 3 ? "var(--neon-violet)" : "var(--muted)"} / 0.3)`,
+                                  border: `1px solid oklch(${displayRankNum <= 3 ? "var(--neon-violet)" : "var(--border)"} / 0.4)`,
+                                  color:
+                                    displayRankNum <= 3
+                                      ? "oklch(var(--neon-violet))"
+                                      : "oklch(var(--foreground) / 0.6)",
+                                }}
+                              >
+                                {entry.playerName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              className="font-display font-bold text-sm text-foreground hover:text-neon-cyan transition-colors duration-200 underline-offset-2 hover:underline text-left"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                playClick();
+                                setSelectedPlayer(entry.playerName);
+                                setSelectedPlayerAvatar(entry.avatar ?? "");
+                              }}
+                              onMouseEnter={() => playHover()}
+                              data-ocid="player.profile.open_modal_button"
+                            >
+                              {entry.playerName}
+                              {highlightedPlayer &&
+                                entry.playerName === highlightedPlayer && (
+                                  <span
+                                    className="ml-2 text-xs font-mono font-normal tracking-wider"
+                                    style={{ color: "oklch(0.82 0.18 200)" }}
+                                  >
+                                    ✦ NEW
+                                  </span>
+                                )}
+                            </button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4 hidden sm:table-cell">
+                          <span className="font-body text-sm text-foreground/60">
+                            {entry.gameName}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4 text-right">
+                          <span
+                            className="font-mono font-bold text-sm"
+                            style={{
+                              color:
+                                displayRankNum === 1
+                                  ? "oklch(var(--gold))"
+                                  : displayRankNum === 2
+                                    ? "oklch(var(--silver))"
+                                    : displayRankNum === 3
+                                      ? "oklch(var(--bronze))"
+                                      : "oklch(var(--neon-cyan) / 0.8)",
+                            }}
+                          >
+                            {Number(entry.score).toLocaleString()}
+                          </span>
+                        </TableCell>
+                      </motion.tr>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           )}
         </motion.div>
       </div>
+
+      {/* Score Submit Modal */}
+      <ScoreSubmitModal
+        open={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSuccess={(updatedLB) => {
+          // Find the highest-ranked NEW entry (not in FALLBACK_LEADERBOARD)
+          const fallbackNames = new Set(
+            FALLBACK_LEADERBOARD.map((e) => e.playerName),
+          );
+          const newEntry = updatedLB.find(
+            (e) => !fallbackNames.has(e.playerName),
+          );
+          handleSubmitSuccess(updatedLB, newEntry?.playerName);
+          setShowSubmitModal(false);
+        }}
+      />
+
+      {/* Player Profile Modal */}
+      <PlayerProfileModal
+        playerName={selectedPlayer}
+        entries={entries}
+        onClose={() => {
+          setSelectedPlayer(null);
+          setSelectedPlayerAvatar("");
+        }}
+        avatar={selectedPlayerAvatar}
+      />
     </section>
   );
 }
@@ -1792,33 +2175,178 @@ function Footer() {
   );
 }
 
-// ─── App ──────────────────────────────────────────────────────────────────────
-export default function App() {
+// ─── Theme color hex helper ───────────────────────────────────────────────────
+const THEME_HEX: Record<string, number> = {
+  cyan: 0x00f5ff,
+  red: 0xff4422,
+  green: 0x22ff88,
+  purple: 0xaa44ff,
+};
+
+// ─── Lobby Section ────────────────────────────────────────────────────────────
+function LobbySection() {
+  const { theme } = useTheme();
+  const themeColor = THEME_HEX[theme] ?? 0x00f5ff;
+
+  return (
+    <section
+      id="lobby"
+      className="relative overflow-hidden"
+      style={{
+        minHeight: "70vh",
+        display: "flex",
+        background: "oklch(0.08 0.02 270 / 0.9)",
+        borderTop: "1px solid oklch(var(--neon-cyan) / 0.12)",
+        borderBottom: "1px solid oklch(var(--neon-violet) / 0.12)",
+      }}
+    >
+      {/* Decorative glow blobs */}
+      <div
+        className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background: "oklch(var(--neon-cyan) / 0.06)",
+          transform: "translate(-30%, -30%)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-80 h-80 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background: "oklch(var(--neon-violet) / 0.07)",
+          transform: "translate(30%, 30%)",
+        }}
+      />
+
+      <div
+        className="container px-4 md:px-6 relative z-10"
+        style={{ display: "flex", alignItems: "center", width: "100%" }}
+      >
+        {/* Left side — text */}
+        <motion.div
+          className="flex-1 flex flex-col justify-center py-16 pr-8"
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-6 w-fit"
+            style={{
+              background: "oklch(var(--neon-cyan) / 0.08)",
+              border: "1px solid oklch(var(--neon-cyan) / 0.3)",
+              color: "oklch(var(--neon-cyan))",
+            }}
+          >
+            <Layers className="w-3 h-3" />
+            3D Lobby
+          </div>
+
+          <h2
+            className="font-display font-black text-4xl md:text-6xl mb-4 leading-none"
+            style={{ color: "oklch(var(--foreground))" }}
+          >
+            ENTER THE
+            <br />
+            <span className="gradient-text-gaming glow-cyan">LOBBY</span>
+          </h2>
+
+          <p className="font-body text-foreground/55 text-lg mb-8 max-w-md leading-relaxed">
+            Your 3D gaming universe awaits. Explore the arena, check the
+            leaderboard, and dominate the competition.
+          </p>
+
+          {/* biome-ignore lint/a11y/useValidAnchor: hash anchor navigates to section */}
+          <motion.a
+            href="#games"
+            className="gaming-btn-primary inline-flex items-center gap-2 px-8 py-3.5 rounded font-display font-bold text-sm tracking-widest uppercase w-fit"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            data-ocid="lobby.primary_button"
+            onMouseEnter={() => playHover()}
+            onClick={() => playClick()}
+          >
+            <Play className="w-4 h-4 fill-current" />
+            Play Now
+          </motion.a>
+
+          {/* Stats row */}
+          <div className="flex gap-8 mt-10">
+            {[
+              { label: "Live 3D Objects", value: "12+" },
+              { label: "FPS", value: "60" },
+              { label: "Effects", value: "Neon" },
+            ].map((s) => (
+              <div key={s.label} className="flex flex-col">
+                <span className="font-display font-black text-xl glow-cyan text-neon-cyan">
+                  {s.value}
+                </span>
+                <span className="font-mono text-xs text-foreground/40 tracking-widest uppercase">
+                  {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Right side — inline 3D canvas */}
+        <motion.div
+          className="hidden lg:flex flex-1 items-stretch"
+          style={{
+            minHeight: "70vh",
+            position: "relative",
+            borderLeft: "1px solid oklch(var(--neon-cyan) / 0.1)",
+          }}
+          initial={{ opacity: 0, x: 40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
+        >
+          <div style={{ position: "absolute", inset: 0 }}>
+            <LobbyCanvas themeColor={themeColor} />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Inner App (consumes ThemeProvider) ──────────────────────────────────────
+function InnerApp() {
+  const { theme } = useTheme();
+  const themeColor = THEME_HEX[theme] ?? 0x00f5ff;
+
   return (
     <div
-      className="dark min-h-screen font-body"
+      className="min-h-screen font-body"
       style={{ background: "oklch(var(--background))" }}
     >
+      {/* Loading screen */}
+      <LoadingScreen />
       {/* Custom glowing crosshair cursor */}
       <GlowingCrosshairCursor />
       {/* Sound toggle button */}
       <SoundToggle />
+      {/* Theme controls — day/night + color swatches */}
+      <ThemeControls />
       {/* AI Chatbot widget */}
       <AIChatBot />
-      {/* Canvas live wallpaper — renders at z-index 0 */}
-      <LiveWallpaper />
+      {/* 3D scene background — theme-aware */}
+      <Scene3D themeColor={themeColor} />
       {/* CSS overlay (aurora orbs, scanlines, circuit) — z-index 1 */}
       <BackgroundOverlay />
 
       <Navbar />
       <main style={{ position: "relative", zIndex: 2 }}>
         <HeroSection />
+        {/* 3D Lobby section — right after hero */}
+        <LobbySection />
         <SectionDivider />
         <GamesSection />
         <SectionDivider />
         <RacingGameSection />
         <SectionDivider />
         <MiniGamesSection />
+        <SectionDivider />
+        <SpaceShooter3DSection />
         <SectionDivider />
         <LeaderboardSection />
         <SectionDivider />
@@ -1828,5 +2356,14 @@ export default function App() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+export default function App() {
+  return (
+    <ThemeProvider>
+      <InnerApp />
+    </ThemeProvider>
   );
 }
