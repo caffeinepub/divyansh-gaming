@@ -1,30 +1,34 @@
 # DIVYANSH GAMING
 
 ## Current State
-A full 3D gaming website with React Three Fiber background scene (warp stars, neon grid, floating gamepad, particle sparks), 10 mini games, car racing game, Space Shooter 3D, global leaderboard with player profiles/search/avatars, AI chatbot (ARIA), sound effects, glowing crosshair cursor, and positive thoughts section. The app is always in dark mode with a fixed cyan/violet/pink neon color scheme.
+- Full gaming website with Car Racing, Space Shooter 3D, 10 Mini Games (Canvas + DOM)
+- Global leaderboard with per-game filter, player search, player profiles, avatar picker
+- AI chatbot (ARIA), animated live wallpaper, React Three Fiber 3D background + lobby
+- Day/night mode + neon theme selector (cyan/red/green/purple)
+- Positive thoughts section, gaming news section
+- Backend: Motoko actor with Game, LeaderboardEntry, NewsPost types and submitScore logic
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Animated Loading Screen**: Full-screen loading screen shown on first app mount with animated DIVYANSH GAMING logo (spinning gamepad, glowing title text, neon progress bar, particle burst), auto-dismisses after assets settle (~2.5s).
-- **Day/Night Mode Toggle**: Persisted in localStorage. Night mode = current dark cyberpunk theme. Day mode = lighter background (deep navy/indigo instead of near-black), softer neon glows, lighter card surfaces — still vibrant/gaming aesthetic.
-- **Custom Site Theme Selector**: Three neon accent themes selectable via a popover/panel in the navbar or a floating controls panel: Cyan (default), Red Neon, Green Neon, Purple Neon. Theme drives the primary accent color (--neon-primary) used across glows, borders, gradients, and 3D scene emissives. Persisted in localStorage.
-- **3D Lobby Scene Enhancements**: Expand Scene3D background with more 3D objects: floating trophy, orbiting gem crystals, a spinning DNA-helix-like strand of orbs, and a more dramatic lighting rig. Add a dedicated "3D Lobby" section (above the hero or as a full-height banner) showing the interactive R3F scene with camera mouse-parallax and rotating platform with floating objects.
+1. **Multiplayer Pong** -- local 2-player Pong game (Player 1: W/S keys, Player 2: Up/Down arrows) with score tracking and round winner announcement
+2. **Daily Challenge** -- a featured challenge that rotates every 24 hours; shows a countdown timer to next challenge; tracks and saves a "challenge completed today" state in localStorage; displays exclusive badge/reward for completing it; challenge types: beat a target score in a specific mini game or car racing
+3. **Tournament System** -- bracket-style single-elimination tournament UI with 8 fictional player slots; user can enter their name and register; bracket shows match-ups and simulates match results with animated reveals; winner gets a trophy + prize announcement
+4. **3D Platformer Game** -- new playable 3D game using React Three Fiber: player ball/character that rolls/jumps on floating platforms, uses arrow keys to move and Space to jump, falls off = restart, has collectible stars, score counter, timer, game over + win screen
+5. **Nav links** for Multiplayer, Daily Challenge, Tournament, 3D Platformer sections
 
 ### Modify
-- `App.tsx`: Add `ThemeProvider` context wrapping entire app. Inject CSS variables for the active theme accent into `:root`. Add loading screen before app renders. Add theme/mode controls to navbar.
-- `Scene3D.tsx`: Accept optional theme color prop to tint emissive materials. Add new 3D objects (trophy, crystals, helix strand).
-- `index.css`: Add day-mode CSS overrides and CSS custom properties for theme accent colors (red, green, purple, cyan variants).
+- App.tsx: add 4 new sections (MultiplayerSection, DailyChallengeSection, TournamentSection, Platformer3DSection) inserted before Footer
+- Navbar: add links to all 4 new sections
+- Footer community links: add Tournaments link
 
 ### Remove
-- Nothing removed.
+- Nothing removed
 
 ## Implementation Plan
-1. Generate logo image for loading screen (gamepad + "DIVYANSH GAMING" text, dark bg).
-2. Create `ThemeContext.tsx` — exposes `{ theme, setTheme, isDark, setIsDark }` with localStorage persistence. Theme values: `cyan | red | green | purple`.
-3. Update `index.css` — add CSS vars for each theme accent (`--accent-*` sets), day-mode class overrides for background/surface colors.
-4. Create `LoadingScreen.tsx` — full-screen animated intro with logo, progress bar, particle burst, auto-dismiss.
-5. Create `ThemeControls.tsx` — compact floating panel (or inline in navbar) with day/night toggle switch and 4 theme color swatches.
-6. Update `Scene3D.tsx` — add trophy, orbiting crystals, helix strand objects; accept theme color prop for emissives.
-7. Update `App.tsx` — wrap with ThemeProvider, mount LoadingScreen, add ThemeControls to navbar area.
-8. Validate and deploy.
+1. Write new backend with DailyChallenge and Tournament types/methods
+2. Create `MultiplayerPong.tsx` -- two-player local Pong on a single Canvas
+3. Create `DailyChallenge.tsx` -- daily challenge card with countdown, challenge type, completion badge, localStorage persistence
+4. Create `TournamentBracket.tsx` -- 8-player single-elimination bracket, registration form, animated match simulation
+5. Create `Platformer3D.tsx` -- R3F 3D platformer: rolling ball, floating platforms, jump physics, star collectibles
+6. Add 4 new sections to App.tsx and new nav links

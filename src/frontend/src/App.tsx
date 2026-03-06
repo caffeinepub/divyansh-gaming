@@ -13,9 +13,11 @@ import {
   Car,
   ChevronDown,
   ExternalLink,
+  Flame,
   Gamepad2,
   Layers,
   Menu,
+  Mountain,
   Newspaper,
   Play,
   Quote,
@@ -25,6 +27,7 @@ import {
   Star,
   Target,
   Trophy,
+  Users2,
   X,
   Zap,
 } from "lucide-react";
@@ -32,9 +35,11 @@ import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
-import GlowingCrosshairCursor from "./components/GlowingCrosshairCursor";
+import DailyChallenge from "./components/DailyChallenge";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
+import MultiplayerPong from "./components/MultiplayerPong";
+import Platformer3D from "./components/Platformer3D";
 import PlayerProfileModal from "./components/PlayerProfileModal";
 import RacingGame from "./components/RacingGame";
 import Scene3D, { LobbyCanvas } from "./components/Scene3D";
@@ -42,6 +47,7 @@ import ScoreSubmitModal from "./components/ScoreSubmitModal";
 import SoundToggle from "./components/SoundToggle";
 import SpaceShooter3D from "./components/SpaceShooter3D";
 import ThemeControls from "./components/ThemeControls";
+import TournamentBracket from "./components/TournamentBracket";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
 import { playClick, playHover } from "./hooks/useSoundEffects";
@@ -386,6 +392,26 @@ function Navbar() {
       label: "3D Game",
       href: "#3d-game",
       icon: <Rocket className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Pong",
+      href: "#multiplayer",
+      icon: <Users2 className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Daily",
+      href: "#daily-challenge",
+      icon: <Flame className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Tournament",
+      href: "#tournament",
+      icon: <Trophy className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Platformer",
+      href: "#platformer-3d",
+      icon: <Mountain className="w-3.5 h-3.5" />,
     },
     {
       label: "Leaderboard",
@@ -1123,6 +1149,238 @@ function SpaceShooter3DSection() {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <SpaceShooter3D />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Multiplayer Pong Section ─────────────────────────────────────────────────
+function MultiplayerSection() {
+  return (
+    <section
+      id="multiplayer"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.08 0.025 220 / 0.8)" }}
+    >
+      <div
+        className="absolute top-0 left-0 w-80 h-80 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(var(--neon-cyan))" }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-6"
+        style={{ background: "oklch(var(--neon-violet))" }}
+      />
+      <div className="container px-4 md:px-6 relative z-10">
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(var(--neon-cyan) / 0.08)",
+              border: "1px solid oklch(var(--neon-cyan) / 0.3)",
+              color: "oklch(var(--neon-cyan))",
+            }}
+          >
+            <Users2 className="w-3 h-3" />
+            Local 2-Player
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Multiplayer{" "}
+            <span className="gradient-text-gaming glow-cyan">Pong</span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            Local 2-player head-to-head Pong. First to 7 wins!
+          </p>
+        </motion.div>
+        <motion.div
+          className="flex justify-center"
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <MultiplayerPong />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Daily Challenge Section ──────────────────────────────────────────────────
+function DailyChallengeSection() {
+  return (
+    <section
+      id="daily-challenge"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.08 0.03 50 / 0.8)" }}
+    >
+      <div
+        className="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(0.78 0.17 60)" }}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-6"
+        style={{ background: "oklch(var(--neon-violet))" }}
+      />
+      <div className="container px-4 md:px-6 relative z-10">
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(0.78 0.17 60 / 0.08)",
+              border: "1px solid oklch(0.78 0.17 60 / 0.4)",
+              color: "oklch(0.78 0.17 60)",
+            }}
+          >
+            <Flame className="w-3 h-3" />
+            Daily
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Daily{" "}
+            <span
+              style={{
+                color: "oklch(0.78 0.17 60)",
+                textShadow: "0 0 20px oklch(0.78 0.17 60 / 0.4)",
+              }}
+            >
+              Challenge
+            </span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            A new challenge every 24 hours. Complete it for exclusive rewards!
+          </p>
+        </motion.div>
+        <motion.div
+          className="flex justify-center"
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <DailyChallenge />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Tournament Section ───────────────────────────────────────────────────────
+function TournamentSection() {
+  return (
+    <section
+      id="tournament"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.08 0.025 295 / 0.8)" }}
+    >
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-80 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(var(--neon-violet))" }}
+      />
+      <div className="container px-4 md:px-6 relative z-10">
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(var(--neon-violet) / 0.08)",
+              border: "1px solid oklch(var(--neon-violet) / 0.3)",
+              color: "oklch(var(--neon-violet))",
+            }}
+          >
+            <Trophy className="w-3 h-3" />
+            8-Player Bracket
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            <span className="gradient-text-gaming glow-violet">Tournament</span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            Bracket-style competition. 8 players. One champion.
+          </p>
+        </motion.div>
+        <motion.div
+          className="flex justify-center"
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <TournamentBracket />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── 3D Platformer Section ────────────────────────────────────────────────────
+function Platformer3DSection() {
+  return (
+    <section
+      id="platformer-3d"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.07 0.02 240 / 0.85)" }}
+    >
+      <div
+        className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(var(--neon-cyan))" }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-6"
+        style={{ background: "oklch(0.78 0.17 60)" }}
+      />
+      <div className="container px-4 md:px-6 relative z-10">
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(var(--neon-cyan) / 0.08)",
+              border: "1px solid oklch(var(--neon-cyan) / 0.3)",
+              color: "oklch(var(--neon-cyan))",
+            }}
+          >
+            <Mountain className="w-3 h-3" />
+            3D Platformer
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Neon{" "}
+            <span className="gradient-text-gaming glow-cyan">
+              Platformer 3D
+            </span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            Roll, jump, and collect stars across floating neon platforms.
+          </p>
+        </motion.div>
+        <motion.div
+          className="flex justify-center"
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Platformer3D />
         </motion.div>
       </div>
     </section>
@@ -2321,8 +2579,6 @@ function InnerApp() {
     >
       {/* Loading screen */}
       <LoadingScreen />
-      {/* Custom glowing crosshair cursor */}
-      <GlowingCrosshairCursor />
       {/* Sound toggle button */}
       <SoundToggle />
       {/* Theme controls — day/night + color swatches */}
@@ -2347,6 +2603,14 @@ function InnerApp() {
         <MiniGamesSection />
         <SectionDivider />
         <SpaceShooter3DSection />
+        <SectionDivider />
+        <MultiplayerSection />
+        <SectionDivider />
+        <DailyChallengeSection />
+        <SectionDivider />
+        <TournamentSection />
+        <SectionDivider />
+        <Platformer3DSection />
         <SectionDivider />
         <LeaderboardSection />
         <SectionDivider />
