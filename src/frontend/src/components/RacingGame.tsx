@@ -567,6 +567,14 @@ export default function RacingGame() {
   >("idle");
   const [postedRank, setPostedRank] = useState<number | null>(null);
 
+  // Secret achievement tracking refs
+  const laneChangesRef = useRef(0);
+  const raceStartTimeRef = useRef(0);
+  const livesLostRef = useRef(0);
+  const secretSpeedFiredRef = useRef(false);
+  const secretGhostFiredRef = useRef(false);
+  const secretUntouchableFiredRef = useRef(false);
+
   // Game state stored in refs so the game loop can access them without stale closures
   const stateRef = useRef({
     playerLane: 1,
@@ -604,6 +612,19 @@ export default function RacingGame() {
   // ─── Score submission ──────────────────────────────────────────────────────
   const submitScore = useCallback(
     async (finalScore: number) => {
+      // Fire Untouchable if player never lost a life and scored >= 200
+      if (
+        !secretUntouchableFiredRef.current &&
+        livesLostRef.current === 0 &&
+        finalScore >= 200
+      ) {
+        secretUntouchableFiredRef.current = true;
+        window.dispatchEvent(
+          new CustomEvent("secret-trigger", {
+            detail: { id: "secret_untouchable" },
+          }),
+        );
+      }
       if (scoreSubmittedRef.current) return;
       scoreSubmittedRef.current = true;
       try {
@@ -627,8 +648,12 @@ export default function RacingGame() {
   const handleLaneInput = useCallback((dir: "left" | "right") => {
     const s = stateRef.current;
     if (phaseRef.current !== "playing") return;
+    const prevLane = s.targetLane;
     if (dir === "left" && s.targetLane > 0) s.targetLane -= 1;
     if (dir === "right" && s.targetLane < LANE_COUNT - 1) s.targetLane += 1;
+    if (s.targetLane !== prevLane) {
+      laneChangesRef.current += 1;
+    }
   }, []);
 
   const startGame = useCallback(() => {
@@ -649,6 +674,13 @@ export default function RacingGame() {
     s.nextId = 0;
     s.scoreTimer = 0;
     scoreSubmittedRef.current = false;
+    // Reset secret achievement counters
+    laneChangesRef.current = 0;
+    livesLostRef.current = 0;
+    secretSpeedFiredRef.current = false;
+    secretGhostFiredRef.current = false;
+    secretUntouchableFiredRef.current = false;
+    raceStartTimeRef.current = Date.now();
     phaseRef.current = "playing";
     setPhase("playing");
     setDisplayScore(0);
@@ -848,6 +880,7 @@ export default function RacingGame() {
             playerY < ey + ENEMY_H - 10 && playerY + PLAYER_H > ey + 10;
           if (overlapX && overlapY) {
             s.lives--;
+            livesLostRef.current += 1;
             setDisplayLives(s.lives);
             s.invincibilityFrames = INVINCIBILITY_FRAMES;
             playCollision();
@@ -861,9 +894,36 @@ export default function RacingGame() {
               rafRef.current = requestAnimationFrame(loop);
               return;
             }
+            // Untouchable check: game ended but player lost a life (not applicable here)
+            // We track lives lost via livesLostRef
             break;
           }
         }
+      }
+
+      // ─── Secret achievement checks ──────────────────────────────────────
+      // Speed Demon: score > 800
+      if (!secretSpeedFiredRef.current && s.score > 800) {
+        secretSpeedFiredRef.current = true;
+        window.dispatchEvent(
+          new CustomEvent("secret-trigger", {
+            detail: { id: "secret_speed_demon" },
+          }),
+        );
+      }
+
+      // Ghost Racer: no lane changes for 60 seconds (3600 frames at 60fps)
+      if (
+        !secretGhostFiredRef.current &&
+        laneChangesRef.current === 0 &&
+        Date.now() - raceStartTimeRef.current >= 60000
+      ) {
+        secretGhostFiredRef.current = true;
+        window.dispatchEvent(
+          new CustomEvent("secret-trigger", {
+            detail: { id: "secret_ghost_racer" },
+          }),
+        );
       }
 
       // ─── Draw ───

@@ -28,6 +28,7 @@ import {
   Star,
   Target,
   Trophy,
+  User,
   Users2,
   X,
   Zap,
@@ -38,6 +39,7 @@ import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
 import AchievementToast from "./components/AchievementToast";
 import AchievementsSection from "./components/AchievementsSection";
+import AvatarCustomizer from "./components/AvatarCustomizer";
 import DailyChallenge from "./components/DailyChallenge";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
@@ -428,6 +430,11 @@ function Navbar() {
       label: "Achievements",
       href: "#achievements",
       icon: <Award className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Avatar",
+      href: "#avatar",
+      icon: <User className="w-3.5 h-3.5" />,
     },
     {
       label: "Platformer",
@@ -1420,6 +1427,67 @@ function XPSection() {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <XPLevelCardFull />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Avatar Customizer Section ────────────────────────────────────────────────
+function AvatarSection() {
+  return (
+    <section
+      id="avatar"
+      className="relative py-24 overflow-hidden"
+      style={{ background: "oklch(0.08 0.025 270 / 0.85)" }}
+    >
+      {/* Decorative glow orbs */}
+      <div
+        className="absolute top-0 left-0 w-80 h-80 rounded-full blur-3xl pointer-events-none opacity-10"
+        style={{ background: "oklch(0.82 0.18 200)" }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-8"
+        style={{ background: "oklch(0.62 0.22 295)" }}
+      />
+
+      <div className="container px-4 md:px-6 relative z-10">
+        {/* Section header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase mb-4"
+            style={{
+              background: "oklch(0.82 0.18 200 / 0.08)",
+              border: "1px solid oklch(0.82 0.18 200 / 0.3)",
+              color: "oklch(0.82 0.18 200)",
+            }}
+          >
+            <User className="w-3 h-3" />
+            Character
+          </div>
+          <h2 className="font-display font-black text-4xl md:text-6xl text-foreground mb-4">
+            Build Your{" "}
+            <span className="gradient-text-gaming glow-cyan">Avatar</span>
+          </h2>
+          <p className="font-body text-foreground/50 max-w-xl mx-auto">
+            Customize your look. Show the world who you are.
+          </p>
+        </motion.div>
+
+        {/* Avatar Customizer */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <AvatarCustomizer />
         </motion.div>
       </div>
     </section>
@@ -2783,6 +2851,8 @@ function InnerApp() {
         <XPSection />
         <SectionDivider />
         <AchievementsSection />
+        <SectionDivider />
+        <AvatarSection />
         <SectionDivider />
         <Platformer3DSection />
         <SectionDivider />
