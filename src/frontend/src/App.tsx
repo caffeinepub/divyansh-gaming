@@ -37,10 +37,13 @@ import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
+import AboutContactSection from "./components/AboutContactSection";
 import AchievementToast from "./components/AchievementToast";
 import AchievementsSection from "./components/AchievementsSection";
 import AvatarCustomizer from "./components/AvatarCustomizer";
 import DailyChallenge from "./components/DailyChallenge";
+import DailyStreakSection from "./components/DailyStreakSection";
+import InviteFriendsSection from "./components/InviteFriendsSection";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
 import MultiplayerPong from "./components/MultiplayerPong";
@@ -53,8 +56,10 @@ import SoundToggle from "./components/SoundToggle";
 import SpaceShooter3D from "./components/SpaceShooter3D";
 import ThemeControls from "./components/ThemeControls";
 import TournamentBracket from "./components/TournamentBracket";
+import WeeklyLeaderboardSection from "./components/WeeklyLeaderboardSection";
 import { XPLevelCardFull, XPLevelCardWidget } from "./components/XPLevelCard";
 import XPToast from "./components/XPToast";
+import YouTubeSection from "./components/YouTubeSection";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import {
   checkAndUnlockAchievements,
@@ -455,6 +460,31 @@ function Navbar() {
       label: "Thoughts",
       href: "#positive-thoughts",
       icon: <Brain className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Streak",
+      href: "#daily-streak",
+      icon: <Flame className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Weekly",
+      href: "#weekly-leaderboard",
+      icon: <Trophy className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Invite",
+      href: "#invite",
+      icon: <Users2 className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "YouTube",
+      href: "#youtube",
+      icon: <Play className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "About",
+      href: "#about",
+      icon: <Shield className="w-3.5 h-3.5" />,
     },
     {
       label: "AI Chat",
@@ -2218,6 +2248,20 @@ function NewsSection() {
           </p>
         </motion.div>
 
+        {/* Sticky announcement banner */}
+        <div
+          className="mb-6 flex items-center gap-3 px-4 py-3 rounded-lg"
+          style={{
+            background: "oklch(var(--neon-cyan)/0.08)",
+            border: "1px solid oklch(var(--neon-cyan)/0.3)",
+          }}
+        >
+          <Zap className="w-4 h-4 text-neon-cyan animate-pulse" />
+          <span className="font-mono text-sm text-neon-cyan font-semibold tracking-wider">
+            🎮 New game added every week! Stay tuned for fresh content.
+          </span>
+        </div>
+
         {/* News grid */}
         {isLoading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -2861,6 +2905,16 @@ function InnerApp() {
         <NewsSection />
         <SectionDivider />
         <PositiveThoughtsSection />
+        <SectionDivider />
+        <DailyStreakSection />
+        <SectionDivider />
+        <WeeklyLeaderboardSection />
+        <SectionDivider />
+        <YouTubeSection />
+        <SectionDivider />
+        <InviteFriendsSection />
+        <SectionDivider />
+        <AboutContactSection />
       </main>
       {/* Sentinel for secret_admirer IntersectionObserver */}
       <div ref={footerSentinelRef} style={{ height: 1 }} aria-hidden="true" />
