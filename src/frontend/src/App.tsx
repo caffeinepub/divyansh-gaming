@@ -41,6 +41,7 @@ import AboutContactSection from "./components/AboutContactSection";
 import AchievementToast from "./components/AchievementToast";
 import AchievementsSection from "./components/AchievementsSection";
 import AvatarCustomizer from "./components/AvatarCustomizer";
+import CinematicIntro from "./components/CinematicIntro";
 import DailyChallenge from "./components/DailyChallenge";
 import DailyStreakSection from "./components/DailyStreakSection";
 import InviteFriendsSection from "./components/InviteFriendsSection";
@@ -231,31 +232,6 @@ const FALLBACK_NEWS: NewsPost[] = [
     date: "2026-02-10",
     summary:
       "Claim your rank rewards from last season before the reset! Diamond and above players receive exclusive profile borders and animated banners.",
-  },
-];
-
-// ─── Hero streaks ─────────────────────────────────────────────────────────────
-const HERO_STREAKS = [
-  {
-    id: "streak-1",
-    delay: 0.5,
-    duration: 6,
-    color: "oklch(var(--neon-cyan) / 0.07)",
-    top: "10%",
-  },
-  {
-    id: "streak-2",
-    delay: 2,
-    duration: 7,
-    color: "oklch(var(--neon-violet) / 0.05)",
-    top: "40%",
-  },
-  {
-    id: "streak-3",
-    delay: 3.5,
-    duration: 5,
-    color: "oklch(var(--neon-cyan) / 0.05)",
-    top: "70%",
   },
 ];
 
@@ -617,214 +593,673 @@ function Navbar() {
 }
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
-function HeroSection() {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 600], [0, 80]);
-  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const headingRef = useRef<HTMLDivElement>(null);
+// ─── useCountUp hook ─────────────────────────────────────────────────────────
+function useCountUp(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = Math.ceil(target / (duration / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(start);
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return count;
+}
+
+// ─── Hero Canvas Background ───────────────────────────────────────────────────
+function HeroCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+
+    const resize = () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Stars
+    const NUM_STARS = 180;
+    const stars = Array.from({ length: NUM_STARS }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      z: Math.random() * w,
+      pz: 0,
+    }));
+    for (const s of stars) {
+      s.pz = s.z;
+    }
+
+    // Grid
+    const GRID_SIZE = 60;
+
+    // Lasers
+    type Laser = {
+      x: number;
+      y: number;
+      len: number;
+      speed: number;
+      color: string;
+      alpha: number;
+    };
+    const LASER_COLORS = ["#00ffff", "#aa44ff", "#ff44aa", "#00ffaa"];
+    const lasers: Laser[] = Array.from({ length: 8 }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h * 0.8,
+      len: 80 + Math.random() * 140,
+      speed: 4 + Math.random() * 6,
+      color: LASER_COLORS[Math.floor(Math.random() * LASER_COLORS.length)],
+      alpha: 0.5 + Math.random() * 0.5,
+    }));
+
+    // Particles
+    type Particle = {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      maxLife: number;
+      r: number;
+      color: string;
+    };
+    const particles: Particle[] = [];
+    const spawnParticle = () => {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2,
+        life: 0,
+        maxLife: 90 + Math.random() * 90,
+        r: 1 + Math.random() * 2,
+        color: LASER_COLORS[Math.floor(Math.random() * LASER_COLORS.length)],
+      });
+    };
+    for (let i = 0; i < 40; i++) spawnParticle();
+
+    let frame = 0;
+
+    const draw = () => {
+      frame++;
+      ctx.clearRect(0, 0, w, h);
+
+      // Deep background
+      const bg = ctx.createRadialGradient(
+        w / 2,
+        h / 2,
+        0,
+        w / 2,
+        h / 2,
+        Math.max(w, h) * 0.8,
+      );
+      bg.addColorStop(0, "#0a0520");
+      bg.addColorStop(1, "#030008");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Neon grid (perspective)
+      ctx.save();
+      const horizon = h * 0.55;
+      const vanishX = w / 2;
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 0.8;
+      // Vertical lines
+      for (let i = -16; i <= 16; i++) {
+        const baseX = vanishX + i * GRID_SIZE;
+        ctx.beginPath();
+        ctx.moveTo(vanishX + i * 4, horizon);
+        ctx.lineTo(baseX, h + 20);
+        ctx.stroke();
+      }
+      // Horizontal lines
+      for (let j = 0; j < 14; j++) {
+        const t = j / 13;
+        const eased = t ** 2.2;
+        const y = horizon + eased * (h + 20 - horizon);
+        const spread = ((y - horizon) / (h - horizon)) * w * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(vanishX - spread / 2, y);
+        ctx.lineTo(vanishX + spread / 2, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Warp star tunnel
+      ctx.save();
+      const cx = w / 2;
+      const cy = h / 2;
+      for (const star of stars) {
+        star.pz = star.z;
+        star.z -= 6;
+        if (star.z <= 0) {
+          star.x = Math.random() * w;
+          star.y = Math.random() * h;
+          star.z = w;
+          star.pz = star.z;
+        }
+        const sx = ((star.x - cx) / star.z) * w + cx;
+        const sy = ((star.y - cy) / star.z) * h + cy;
+        const px = ((star.x - cx) / star.pz) * w + cx;
+        const py = ((star.y - cy) / star.pz) * h + cy;
+        const size = Math.max(0.5, (1 - star.z / w) * 3);
+        const alpha = Math.max(0.1, 1 - star.z / w);
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = size;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Lasers
+      ctx.save();
+      for (const laser of lasers) {
+        laser.x += laser.speed;
+        if (laser.x > w + laser.len) {
+          laser.x = -laser.len;
+          laser.y = Math.random() * h * 0.8;
+          laser.color =
+            LASER_COLORS[Math.floor(Math.random() * LASER_COLORS.length)];
+        }
+        const grad = ctx.createLinearGradient(
+          laser.x - laser.len,
+          laser.y,
+          laser.x,
+          laser.y,
+        );
+        grad.addColorStop(0, "transparent");
+        grad.addColorStop(0.7, `${laser.color}99`);
+        grad.addColorStop(1, laser.color);
+        ctx.globalAlpha = laser.alpha * 0.7;
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = laser.color;
+        ctx.beginPath();
+        ctx.moveTo(laser.x - laser.len, laser.y);
+        ctx.lineTo(laser.x, laser.y);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+
+      // Particles
+      if (frame % 4 === 0 && particles.length < 80) spawnParticle();
+      ctx.save();
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life++;
+        if (p.life >= p.maxLife) {
+          particles.splice(i, 1);
+          continue;
+        }
+        const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.7;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+
+      // Scan-line overlay
+      ctx.save();
+      for (let sy = 0; sy < h; sy += 4) {
+        ctx.globalAlpha = 0.025;
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, sy, w, 2);
+      }
+      ctx.restore();
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ zIndex: 0 }}
+    />
+  );
+}
+
+function HeroSection() {
+  const { scrollY } = useScroll();
+  const opacity = useTransform(scrollY, [0, 500], [1, 0]);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Animated counters
+  const playersOnline = useCountUp(1247);
+  const gamesPlayed = useCountUp(58392);
+  const topScore = useCountUp(99850);
+
+  // Mouse parallax
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!headingRef.current) return;
-      const nx = (e.clientX / window.innerWidth) * 2 - 1; // -1 to 1
-      const ny = (e.clientY / window.innerHeight) * 2 - 1; // -1 to 1
-      const rotY = nx * 6;
-      const rotX = ny * -4;
-      headingRef.current.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+      if (!contentRef.current) return;
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+      contentRef.current.style.transform = `translate(${nx * 10}px, ${ny * 6}px)`;
     };
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const tickerItems = [
+    "🎮 Players Online: 1,247",
+    "🏆 Top Score: 99,850",
+    "👑 Champion: ProGamer_X",
+    "⚡ Daily Challenge: Active",
+    "🔥 Tournament: Starting Soon",
+    "🚀 New: Space Shooter 3D",
+  ];
+
+  const featuredGames = [
+    { emoji: "🏎️", name: "Car Racing", color: "#ff6600" },
+    { emoji: "🚀", name: "Space Shooter 3D", color: "#00aaff" },
+    { emoji: "🐍", name: "Snake", color: "#00ff88" },
+    { emoji: "🧱", name: "Brick Breaker", color: "#ff44aa" },
+    { emoji: "🐦", name: "Flappy Bird", color: "#ffdd00" },
+  ];
+
   return (
     <section
       id="hero"
+      data-ocid="hero.section"
+      ref={heroRef}
       className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
     >
-      {/* Background image */}
-      <motion.div className="absolute inset-0" style={{ y }}>
-        <img
-          src="/assets/generated/hero-gaming-banner.dim_1920x1080.jpg"
-          alt="Gaming Background"
-          className="w-full h-full object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, oklch(0.085 0.015 270 / 0.65) 0%, oklch(0.085 0.015 270 / 0.75) 50%, oklch(0.085 0.015 270 / 1) 100%)",
-          }}
-        />
-      </motion.div>
+      {/* Animated canvas background */}
+      <HeroCanvas />
 
-      {/* Grid overlay */}
-      <div className="absolute inset-0 bg-grid opacity-40" />
-
-      {/* Hero diagonal light streaks */}
-      {HERO_STREAKS.map((streak) => (
+      {/* Pixel corner accents */}
+      {(
+        [
+          {
+            pos: "tl",
+            style: { top: "1.5rem", left: "1.5rem" },
+            border: "border-t-2 border-l-2",
+          },
+          {
+            pos: "tr",
+            style: { top: "1.5rem", right: "1.5rem" },
+            border: "border-t-2 border-r-2",
+          },
+          {
+            pos: "bl",
+            style: { bottom: "1.5rem", left: "1.5rem" },
+            border: "border-b-2 border-l-2",
+          },
+          {
+            pos: "br",
+            style: { bottom: "1.5rem", right: "1.5rem" },
+            border: "border-b-2 border-r-2",
+          },
+        ] as const
+      ).map((corner, i) => (
         <motion.div
-          key={streak.id}
-          className="absolute pointer-events-none"
-          style={{
-            top: streak.top,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: `linear-gradient(90deg, transparent 0%, ${streak.color} 40%, ${streak.color} 60%, transparent 100%)`,
-          }}
-          animate={{ x: ["-110%", "110%"] }}
+          key={corner.pos}
+          className={`absolute pointer-events-none w-8 h-8 ${corner.border}`}
+          style={{ ...corner.style, borderColor: "#00ffff", zIndex: 2 }}
+          animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
-            duration: streak.duration,
-            delay: streak.delay,
+            duration: 2.5,
             repeat: Number.POSITIVE_INFINITY,
-            repeatDelay: 3,
+            delay: i * 0.5,
             ease: "easeInOut",
           }}
         />
       ))}
 
-      {/* Content */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center text-center px-4 max-w-5xl mx-auto"
-        style={{ opacity }}
-      >
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-medium mb-8 tracking-widest uppercase"
-            style={{
-              background: "oklch(var(--neon-cyan) / 0.1)",
-              border: "1px solid oklch(var(--neon-cyan) / 0.4)",
-              color: "oklch(var(--neon-cyan))",
-            }}
-          >
-            <Zap className="w-3 h-3 animate-pulse-glow" />
-            Season 5 — Cyber Awakening
-          </div>
-        </motion.div>
+      {/* Overlay dark gradient for readability */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(3,0,8,0.55) 100%)",
+          zIndex: 1,
+        }}
+      />
 
-        {/* Main heading — 3D parallax wrapper */}
+      {/* Main content */}
+      <motion.div
+        className="relative flex flex-col items-center text-center px-4 w-full max-w-5xl mx-auto pt-24 pb-16"
+        style={{ opacity, zIndex: 3 }}
+      >
+        {/* Parallax inner content */}
         <div
-          ref={headingRef}
+          ref={contentRef}
           style={{
-            transition: "transform 0.15s ease-out",
+            transition: "transform 0.08s linear",
             willChange: "transform",
-            display: "inline-block",
           }}
         >
-          <motion.h1
-            className="font-display font-black text-5xl sm:text-6xl md:text-8xl lg:text-9xl tracking-tight mb-4 leading-none"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          {/* Live stats ticker */}
+          <motion.div
+            className="w-full max-w-3xl mx-auto mb-8 overflow-hidden rounded"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            style={{
+              background: "rgba(0,255,255,0.06)",
+              borderTop: "1px solid rgba(0,255,255,0.4)",
+              borderBottom: "1px solid rgba(0,255,255,0.4)",
+            }}
           >
-            <span
-              className="block"
+            <div className="hero-ticker-track flex gap-16 py-2 px-4 whitespace-nowrap">
+              {[
+                ...tickerItems.map((t, i) => ({ text: t, key: `a${i}` })),
+                ...tickerItems.map((t, i) => ({ text: t, key: `b${i}` })),
+              ].map(({ text, key }) => (
+                <span
+                  key={key}
+                  className="font-mono text-xs font-semibold shrink-0"
+                  style={{ color: "#00ffcc" }}
+                >
+                  {text}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* DIVYANSH GAMING title */}
+          <motion.div
+            className="relative mb-4"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+          >
+            {/* Breathing radial glow */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none -z-10"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{
+                duration: 3.5,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
               style={{
-                color: "oklch(var(--foreground))",
-                textShadow: "0 0 40px oklch(var(--neon-cyan) / 0.2)",
+                background:
+                  "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,255,255,0.18) 0%, transparent 70%)",
+                filter: "blur(8px)",
+              }}
+            />
+            <h1
+              className="hero-glitch font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight leading-none"
+              data-text="DIVYANSH GAMING"
+              style={{
+                color: "#ffffff",
+                textShadow:
+                  "0 0 20px #00ffff, 0 0 40px #00ffff88, 0 0 80px #00ffff44",
               }}
             >
-              DIVYANSH
-            </span>
-            <span className="block gradient-text-gaming glow-cyan glitch-text">
-              GAMING
-            </span>
-          </motion.h1>
-        </div>
+              DIVYANSH GAMING
+            </h1>
+          </motion.div>
 
-        {/* Tagline */}
-        <motion.p
-          className="font-body text-base sm:text-xl md:text-2xl text-foreground/70 mb-10 max-w-2xl leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          Level Up Your Game.{" "}
-          <span className="text-neon-cyan font-semibold">
-            Dominate the Leaderboard.
-          </span>
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.65 }}
-        >
-          {/* biome-ignore lint/a11y/useValidAnchor: hash anchor navigates to section */}
-          <a
-            href="#games"
-            className="gaming-btn-primary inline-flex items-center gap-2 px-8 py-3.5 rounded font-display font-bold text-sm tracking-widest uppercase"
-            onMouseEnter={() => playHover()}
-            onClick={() => playClick()}
+          {/* Tagline */}
+          <motion.p
+            className="font-mono text-base sm:text-lg md:text-xl font-medium tracking-widest uppercase mb-8"
+            style={{ color: "#aa88ff" }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Gamepad2 className="w-4 h-4" />
-            Explore Games
-          </a>
-          {/* biome-ignore lint/a11y/useValidAnchor: hash anchor navigates to section */}
-          <a
-            href="#leaderboard"
-            className="gaming-btn-accent inline-flex items-center gap-2 px-8 py-3.5 rounded font-display font-bold text-sm tracking-widest uppercase"
-            onMouseEnter={() => playHover()}
-            onClick={() => playClick()}
-          >
-            <Trophy className="w-4 h-4" />
-            View Leaderboard
-          </a>
-        </motion.div>
+            Level Up. <span style={{ color: "#00ffcc" }}>Game On.</span>{" "}
+            <span style={{ color: "#ff44aa" }}>Dominate.</span>
+          </motion.p>
 
-        {/* Stats row */}
-        <motion.div
-          className="flex flex-wrap justify-center gap-8 mt-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.9 }}
-        >
-          {[
-            {
-              label: "Active Players",
-              value: "50K+",
-              icon: <Shield className="w-4 h-4" />,
-            },
-            {
-              label: "Games Available",
-              value: "120+",
-              icon: <Gamepad2 className="w-4 h-4" />,
-            },
-            {
-              label: "Tournaments Won",
-              value: "1,200+",
-              icon: <Trophy className="w-4 h-4" />,
-            },
-          ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-2 text-neon-cyan mb-1">
-                {/* 3D spinning icon */}
-                <div className="spin3d-icon">{stat.icon}</div>
-                <span className="font-display font-black text-2xl glow-cyan">
-                  {stat.value}
+          {/* CTA Buttons */}
+          <motion.div
+            className="flex flex-wrap items-center justify-center gap-4 mb-10"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+          >
+            <motion.button
+              type="button"
+              data-ocid="hero.primary_button"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded font-mono font-bold text-sm tracking-widest uppercase cursor-pointer select-none"
+              style={{
+                background: "linear-gradient(135deg, #00ffcc 0%, #00aaff 100%)",
+                color: "#03000a",
+                boxShadow:
+                  "0 0 24px rgba(0,255,204,0.5), 0 0 48px rgba(0,255,204,0.2)",
+              }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow:
+                  "0 0 36px rgba(0,255,204,0.7), 0 0 64px rgba(0,255,204,0.3)",
+              }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                playClick();
+              }}
+            >
+              <Play className="w-4 h-4" />
+              Play Now
+            </motion.button>
+            <motion.button
+              type="button"
+              data-ocid="hero.secondary_button"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded font-mono font-bold text-sm tracking-widest uppercase cursor-pointer select-none"
+              style={{
+                background: "transparent",
+                color: "#00ffcc",
+                border: "2px solid rgba(0,255,204,0.6)",
+                boxShadow: "0 0 12px rgba(0,255,204,0.2)",
+              }}
+              whileHover={{
+                scale: 1.05,
+                borderColor: "#00ffcc",
+                boxShadow: "0 0 24px rgba(0,255,204,0.4)",
+              }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                playClick();
+              }}
+            >
+              <Trophy className="w-4 h-4" />
+              View Leaderboard
+            </motion.button>
+          </motion.div>
+
+          {/* Replay Intro button */}
+          <motion.div
+            className="flex justify-center mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
+            <motion.button
+              type="button"
+              data-ocid="hero.replay_intro.button"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded font-mono font-semibold text-xs tracking-widest uppercase cursor-pointer select-none"
+              style={{
+                background: "transparent",
+                color: "#00ffff",
+                border: "1px solid rgba(0,255,255,0.4)",
+                boxShadow: "0 0 8px rgba(0,255,255,0.15)",
+              }}
+              whileHover={{
+                scale: 1.05,
+                borderColor: "#00ffff",
+                boxShadow: "0 0 16px rgba(0,255,255,0.35)",
+              }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => {
+                playClick();
+                window.dispatchEvent(new CustomEvent("replay-intro"));
+              }}
+            >
+              ▶ Replay Intro
+            </motion.button>
+          </motion.div>
+
+          {/* Animated stat counters */}
+          <motion.div
+            className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
+            {[
+              {
+                label: "Players Online",
+                value: playersOnline,
+                icon: <Users2 className="w-4 h-4" />,
+                color: "#00ffcc",
+              },
+              {
+                label: "Games Played",
+                value: gamesPlayed,
+                icon: <Gamepad2 className="w-4 h-4" />,
+                color: "#aa44ff",
+              },
+              {
+                label: "Top Score",
+                value: topScore,
+                icon: <Trophy className="w-4 h-4" />,
+                color: "#ff44aa",
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex flex-col items-center gap-1 px-6 py-4 rounded-lg"
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: `1px solid ${stat.color}44`,
+                  backdropFilter: "blur(8px)",
+                  minWidth: 120,
+                }}
+              >
+                <div
+                  className="flex items-center gap-2 mb-1"
+                  style={{ color: stat.color }}
+                >
+                  {stat.icon}
+                  <span
+                    className="font-display font-black text-2xl"
+                    style={{ textShadow: `0 0 12px ${stat.color}` }}
+                  >
+                    {stat.value.toLocaleString()}
+                  </span>
+                </div>
+                <span
+                  className="font-mono text-xs tracking-widest uppercase"
+                  style={{ color: "rgba(255,255,255,0.45)" }}
+                >
+                  {stat.label}
                 </span>
               </div>
-              <span className="font-body text-xs text-foreground/50 tracking-widest uppercase">
-                {stat.label}
-              </span>
+            ))}
+          </motion.div>
+
+          {/* Featured games carousel */}
+          <motion.div
+            className="w-full max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.85 }}
+          >
+            <p
+              className="font-mono text-xs tracking-widest uppercase mb-3"
+              style={{ color: "rgba(0,255,204,0.6)" }}
+            >
+              Featured Games
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar justify-start md:justify-center">
+              {featuredGames.map((game, i) => (
+                <motion.button
+                  key={game.name}
+                  type="button"
+                  data-ocid={`hero.item.${i + 1}`}
+                  className="flex-shrink-0 flex flex-col items-center gap-2 px-5 py-4 rounded-lg cursor-pointer select-none"
+                  style={{
+                    background: `${game.color}11`,
+                    border: `1px solid ${game.color}44`,
+                    minWidth: 100,
+                  }}
+                  whileHover={{
+                    scale: 1.06,
+                    background: `${game.color}22`,
+                    borderColor: `${game.color}88`,
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 + i * 0.08 }}
+                  onClick={() => {
+                    playClick();
+                    document
+                      .getElementById("games")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  <span className="text-2xl">{game.emoji}</span>
+                  <span
+                    className="font-mono text-xs font-semibold whitespace-nowrap"
+                    style={{ color: game.color }}
+                  >
+                    {game.name}
+                  </span>
+                  <span
+                    className="text-xs font-mono tracking-wider px-2 py-0.5 rounded"
+                    style={{
+                      background: `${game.color}22`,
+                      color: game.color,
+                      border: `1px solid ${game.color}44`,
+                    }}
+                  >
+                    Play
+                  </span>
+                </motion.button>
+              ))}
             </div>
-          ))}
-        </motion.div>
+          </motion.div>
+        </div>
       </motion.div>
 
       {/* Scroll indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-foreground/40"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+        style={{ zIndex: 3, color: "rgba(255,255,255,0.35)" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
+        transition={{ delay: 1.4 }}
       >
         <span className="font-mono text-xs tracking-widest uppercase">
           Scroll
@@ -2786,6 +3221,14 @@ function InnerApp() {
   const { theme } = useTheme();
   const themeColor = THEME_HEX[theme] ?? 0x00f5ff;
   const footerSentinelRef = useRef<HTMLDivElement>(null);
+  const [replayIntro, setReplayIntro] = useState(false);
+
+  // Listen for replay-intro custom event from HeroSection
+  useEffect(() => {
+    const handler = () => setReplayIntro(true);
+    window.addEventListener("replay-intro", handler);
+    return () => window.removeEventListener("replay-intro", handler);
+  }, []);
 
   // Listen for xp-awarded events and check / unlock achievements
   useEffect(() => {
@@ -2853,6 +3296,11 @@ function InnerApp() {
       className="min-h-screen font-body"
       style={{ background: "oklch(var(--background))" }}
     >
+      {/* Cinematic intro — once per session */}
+      <CinematicIntro
+        onComplete={() => setReplayIntro(false)}
+        forceShow={replayIntro}
+      />
       {/* Loading screen */}
       <LoadingScreen />
       {/* XP Toast — globally rendered, above everything */}

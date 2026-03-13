@@ -469,3 +469,28 @@
   border-color: oklch(var(--bronze) / 0.5);
   color: oklch(var(--bronze));
 }
+
+/* Hero ticker animation */
+@keyframes hero-ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.hero-ticker-track {
+  animation: hero-ticker-scroll 18s linear infinite;
+}
+
+/* Hero glitch animation */
+.hero-glitch {
+  position: relative;
+  animation: glitch 8s infinite;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
