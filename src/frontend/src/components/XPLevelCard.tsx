@@ -60,7 +60,6 @@ function XPProgressBar({
         border: "1px solid oklch(0.78 0.17 60 / 0.2)",
       }}
       role="progressbar"
-      // biome-ignore lint/a11y/useFocusableInteractive: progress bar is decorative but needs role for screen readers
       tabIndex={0}
       aria-valuenow={Math.round(progress)}
       aria-valuemin={0}

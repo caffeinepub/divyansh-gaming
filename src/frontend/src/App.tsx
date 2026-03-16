@@ -42,6 +42,8 @@ import AchievementToast from "./components/AchievementToast";
 import AchievementsSection from "./components/AchievementsSection";
 import AvatarCustomizer from "./components/AvatarCustomizer";
 import CinematicIntro from "./components/CinematicIntro";
+import ComicStoriesSection from "./components/ComicStoriesSection";
+import CreatorAchievementsSection from "./components/CreatorAchievementsSection";
 import DailyChallenge from "./components/DailyChallenge";
 import DailyStreakSection from "./components/DailyStreakSection";
 import InviteFriendsSection from "./components/InviteFriendsSection";
@@ -51,6 +53,7 @@ import MultiplayerPong from "./components/MultiplayerPong";
 import Platformer3D from "./components/Platformer3D";
 import PlayerProfileModal from "./components/PlayerProfileModal";
 import RacingGame from "./components/RacingGame";
+import RetroGamesSection from "./components/RetroGamesSection";
 import Scene3D, { LobbyCanvas } from "./components/Scene3D";
 import ScoreSubmitModal from "./components/ScoreSubmitModal";
 import SoundToggle from "./components/SoundToggle";
@@ -383,6 +386,16 @@ function Navbar() {
       icon: <Gamepad2 className="w-3.5 h-3.5" />,
     },
     {
+      label: "90s Zone",
+      href: "#retro-games",
+      icon: <Gamepad2 className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Comics",
+      href: "#comics",
+      icon: <Gamepad2 className="w-3.5 h-3.5" />,
+    },
+    {
       label: "3D Game",
       href: "#3d-game",
       icon: <Rocket className="w-3.5 h-3.5" />,
@@ -410,6 +423,11 @@ function Navbar() {
     {
       label: "Achievements",
       href: "#achievements",
+      icon: <Award className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Creator",
+      href: "#creator-achievements",
       icon: <Award className="w-3.5 h-3.5" />,
     },
     {
@@ -3332,6 +3350,10 @@ function InnerApp() {
         <SectionDivider />
         <MiniGamesSection />
         <SectionDivider />
+        <RetroGamesSection />
+        <SectionDivider />
+        <ComicStoriesSection />
+        <SectionDivider />
         <SpaceShooter3DSection />
         <SectionDivider />
         <MultiplayerSection />
@@ -3343,6 +3365,8 @@ function InnerApp() {
         <XPSection />
         <SectionDivider />
         <AchievementsSection />
+        <SectionDivider />
+        <CreatorAchievementsSection />
         <SectionDivider />
         <AvatarSection />
         <SectionDivider />

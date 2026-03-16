@@ -267,8 +267,8 @@ export default function WhackAMole() {
           const holeKey = `hole-pos-${String(i).padStart(2, "0")}`;
           return (
             <button
-              key={holeKey}
               type="button"
+              key={holeKey}
               onClick={() => whack(i)}
               style={{
                 width: 90,

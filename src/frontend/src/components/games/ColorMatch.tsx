@@ -242,8 +242,8 @@ export default function ColorMatch() {
         >
           {round.options.map((opt) => (
             <button
-              key={opt.name}
               type="button"
+              key={opt.name}
               onClick={() => handleAnswer(opt)}
               style={{
                 padding: "14px",

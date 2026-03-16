@@ -216,8 +216,8 @@ export default function MemoryMatch() {
       >
         {cards.map((card, i) => (
           <button
-            key={card.id}
             type="button"
+            key={card.id}
             onClick={() => gameState === "playing" && flipCard(i)}
             style={{
               width: 72,
