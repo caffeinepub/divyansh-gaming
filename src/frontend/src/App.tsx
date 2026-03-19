@@ -46,12 +46,15 @@ import ComicStoriesSection from "./components/ComicStoriesSection";
 import CreatorAchievementsSection from "./components/CreatorAchievementsSection";
 import DailyChallenge from "./components/DailyChallenge";
 import DailyStreakSection from "./components/DailyStreakSection";
+import GuestPrompt from "./components/GuestPrompt";
 import InviteFriendsSection from "./components/InviteFriendsSection";
+import LanguageSelector from "./components/LanguageSelector";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
 import MultiplayerPong from "./components/MultiplayerPong";
 import Platformer3D from "./components/Platformer3D";
 import PlayerProfileModal from "./components/PlayerProfileModal";
+import ProfileModal from "./components/ProfileModal";
 import RacingGame from "./components/RacingGame";
 import RetroGamesSection from "./components/RetroGamesSection";
 import Scene3D, { LobbyCanvas } from "./components/Scene3D";
@@ -65,11 +68,13 @@ import { XPLevelCardFull, XPLevelCardWidget } from "./components/XPLevelCard";
 import XPToast from "./components/XPToast";
 import YouTubeSection from "./components/YouTubeSection";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import {
   checkAndUnlockAchievements,
   incrementScoresSubmitted,
   initSecretAchievementListener,
 } from "./hooks/useAchievements";
+import { useProfile } from "./hooks/useProfile";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
 import { playClick, playHover } from "./hooks/useSoundEffects";
 import { awardXP, getProfile } from "./hooks/useXPSystem";
@@ -356,6 +361,8 @@ function BackgroundOverlay() {
 function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const { profile } = useProfile();
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -558,6 +565,33 @@ function Navbar() {
             </a>
           ))}
         </nav>
+
+        {/* Language + Profile Controls */}
+        <div className="hidden md:flex items-center gap-2">
+          <LanguageSelector />
+          <button
+            type="button"
+            data-ocid="nav.profile.button"
+            onClick={() => {
+              playClick();
+              setProfileOpen(true);
+            }}
+            onMouseEnter={() => playHover()}
+            aria-label="Profile"
+            className="flex items-center justify-center w-9 h-9 rounded-full border border-cyan-400/30 hover:border-cyan-400/60 bg-cyan-400/10 hover:bg-cyan-400/20 text-cyan-400 transition-all duration-200"
+            style={{ fontSize: profile?.avatar ? "1.2rem" : undefined }}
+          >
+            {profile?.avatar ? (
+              <span className="text-lg leading-none">{profile.avatar}</span>
+            ) : (
+              <User className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+        <ProfileModal
+          open={profileOpen}
+          onClose={() => setProfileOpen(false)}
+        />
 
         {/* Mobile toggle */}
         <button
@@ -3240,6 +3274,8 @@ function InnerApp() {
   const themeColor = THEME_HEX[theme] ?? 0x00f5ff;
   const footerSentinelRef = useRef<HTMLDivElement>(null);
   const [replayIntro, setReplayIntro] = useState(false);
+  const { profile, setupGuest } = useProfile();
+  const showGuestPrompt = !profile;
 
   // Listen for replay-intro custom event from HeroSection
   useEffect(() => {
@@ -3391,6 +3427,14 @@ function InnerApp() {
       {/* Sentinel for secret_admirer IntersectionObserver */}
       <div ref={footerSentinelRef} style={{ height: 1 }} aria-hidden="true" />
       <Footer />
+      {/* Guest Prompt — first visit only */}
+      {showGuestPrompt && (
+        <GuestPrompt
+          onDismiss={() => {
+            if (!profile) setupGuest();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -3398,8 +3442,10 @@ function InnerApp() {
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   return (
-    <ThemeProvider>
-      <InnerApp />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <InnerApp />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
