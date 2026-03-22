@@ -17,6 +17,7 @@ import {
   Flame,
   Gamepad2,
   Layers,
+  Lock,
   Menu,
   Mountain,
   Newspaper,
@@ -25,6 +26,7 @@ import {
   Rocket,
   Search,
   Shield,
+  ShoppingBag,
   Star,
   Target,
   Trophy,
@@ -40,6 +42,7 @@ import AIChatBot from "./components/AIChatBot";
 import AboutContactSection from "./components/AboutContactSection";
 import AchievementToast from "./components/AchievementToast";
 import AchievementsSection from "./components/AchievementsSection";
+import AdminPanel from "./components/AdminPanel";
 import AvatarCustomizer from "./components/AvatarCustomizer";
 import CinematicIntro from "./components/CinematicIntro";
 import ComicStoriesSection from "./components/ComicStoriesSection";
@@ -52,8 +55,10 @@ import LanguageSelector from "./components/LanguageSelector";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniGamesSection from "./components/MiniGamesSection";
 import MultiplayerPong from "./components/MultiplayerPong";
+import PWAInstallBanner from "./components/PWAInstallBanner";
 import Platformer3D from "./components/Platformer3D";
 import PlayerProfileModal from "./components/PlayerProfileModal";
+import PremiumShop from "./components/PremiumShop";
 import ProfileModal from "./components/ProfileModal";
 import RacingGame from "./components/RacingGame";
 import RetroGamesSection from "./components/RetroGamesSection";
@@ -61,6 +66,7 @@ import Scene3D, { LobbyCanvas } from "./components/Scene3D";
 import ScoreSubmitModal from "./components/ScoreSubmitModal";
 import SoundToggle from "./components/SoundToggle";
 import SpaceShooter3D from "./components/SpaceShooter3D";
+import SupportCreatorButton from "./components/SupportCreatorButton";
 import ThemeControls from "./components/ThemeControls";
 import TournamentBracket from "./components/TournamentBracket";
 import WeeklyLeaderboardSection from "./components/WeeklyLeaderboardSection";
@@ -488,6 +494,11 @@ function Navbar() {
       icon: <Shield className="w-3.5 h-3.5" />,
     },
     {
+      label: "Shop",
+      href: "#premium-shop",
+      icon: <ShoppingBag className="w-3.5 h-3.5" />,
+    },
+    {
       label: "AI Chat",
       href: "#ai-chat",
       icon: <Bot className="w-3.5 h-3.5" />,
@@ -571,6 +582,20 @@ function Navbar() {
           <LanguageSelector />
           <button
             type="button"
+            data-ocid="admin.open_modal_button"
+            onClick={() => {
+              playClick();
+              window.dispatchEvent(new CustomEvent("openAdminPanel"));
+            }}
+            onMouseEnter={() => playHover()}
+            aria-label="Admin Panel"
+            className="flex items-center gap-1.5 px-3 py-2 rounded border border-cyan-400 bg-cyan-400/20 hover:bg-cyan-400/40 text-cyan-400 transition-all duration-200 text-xs font-bold shadow-[0_0_8px_rgba(0,255,255,0.5)]"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Admin</span>
+          </button>
+          <button
+            type="button"
             data-ocid="nav.profile.button"
             onClick={() => {
               playClick();
@@ -636,6 +661,18 @@ function Navbar() {
                   {link.label}
                 </a>
               ))}
+              <button
+                type="button"
+                data-ocid="admin.open_modal_button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  window.dispatchEvent(new CustomEvent("openAdminPanel"));
+                }}
+                className="flex items-center gap-2 px-3 py-2.5 rounded text-sm font-medium text-cyan-400/60 hover:text-cyan-400 hover:bg-cyan-400/5 transition-all"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                Admin
+              </button>
             </nav>
           </motion.div>
         )}
@@ -3274,6 +3311,9 @@ function InnerApp() {
   const themeColor = THEME_HEX[theme] ?? 0x00f5ff;
   const footerSentinelRef = useRef<HTMLDivElement>(null);
   const [replayIntro, setReplayIntro] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(
+    () => window.location.hash === "#admin",
+  );
   const { profile, setupGuest } = useProfile();
   const showGuestPrompt = !profile;
 
@@ -3282,6 +3322,13 @@ function InnerApp() {
     const handler = () => setReplayIntro(true);
     window.addEventListener("replay-intro", handler);
     return () => window.removeEventListener("replay-intro", handler);
+  }, []);
+
+  // Listen for openAdminPanel event
+  useEffect(() => {
+    const handler = () => setAdminOpen(true);
+    window.addEventListener("openAdminPanel", handler);
+    return () => window.removeEventListener("openAdminPanel", handler);
   }, []);
 
   // Listen for xp-awarded events and check / unlock achievements
@@ -3368,6 +3415,7 @@ function InnerApp() {
       {/* Theme controls — day/night + color swatches */}
       <ThemeControls />
       {/* AI Chatbot widget */}
+      <SupportCreatorButton />
       <AIChatBot />
       {/* 3D scene background — theme-aware */}
       <Scene3D themeColor={themeColor} />
@@ -3385,6 +3433,8 @@ function InnerApp() {
         <RacingGameSection />
         <SectionDivider />
         <MiniGamesSection />
+        <SectionDivider />
+        <PremiumShop />
         <SectionDivider />
         <RetroGamesSection />
         <SectionDivider />
@@ -3435,6 +3485,10 @@ function InnerApp() {
           }}
         />
       )}
+      <AnimatePresence>
+        {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
+      </AnimatePresence>
+      <PWAInstallBanner />
     </div>
   );
 }

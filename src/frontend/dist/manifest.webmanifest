@@ -1,0 +1,44 @@
+{
+  "name": "DIVYANSH GAMING",
+  "short_name": "DG Gaming",
+  "description": "Your ultimate online gaming destination. Play 80+ mini games, compete on leaderboards, earn XP and achievements!",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#050510",
+  "theme_color": "#00f5ff",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/assets/generated/favicon-gamepad-transparent.dim_64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/generated/pwa-icon-512.dim_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Play Games",
+      "short_name": "Play",
+      "description": "Jump straight into the game library",
+      "url": "/#games"
+    },
+    {
+      "name": "Leaderboard",
+      "short_name": "Scores",
+      "description": "View the global leaderboard",
+      "url": "/#leaderboard"
+    }
+  ]
+}

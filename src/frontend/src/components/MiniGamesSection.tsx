@@ -1335,6 +1335,156 @@ function MiniGameCard({
 }
 
 // ── MiniGamesSection ────────────────────────────────────────────────────────────
+// ── Sponsored Game Slot ───────────────────────────────────────────────────────
+function SponsoredGameSlot() {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <>
+      <motion.div
+        data-ocid="minigames.sponsored.card"
+        className="relative rounded-2xl p-4 cursor-pointer overflow-hidden flex items-center gap-4"
+        style={{
+          background:
+            "linear-gradient(135deg, oklch(0.1 0.05 60 / 0.8), oklch(0.1 0.04 270 / 0.8))",
+          border: "2px solid oklch(0.8 0.25 60 / 0.6)",
+          boxShadow:
+            "0 0 30px oklch(0.8 0.25 60 / 0.2), 0 0 60px oklch(0.8 0.25 60 / 0.08)",
+        }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        onClick={() => {
+          playClick();
+          setShowModal(true);
+        }}
+      >
+        {/* Rainbow shimmer */}
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg, oklch(0.8 0.25 60), oklch(0.7 0.3 300), oklch(0.7 0.3 200), oklch(0.8 0.25 60))",
+            backgroundSize: "300%",
+            animation: "bgShift 4s linear infinite",
+          }}
+        />
+        <div
+          className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+          style={{
+            background: "oklch(0.15 0.08 60)",
+            border: "2px solid oklch(0.8 0.25 60 / 0.5)",
+            boxShadow: "0 0 16px oklch(0.8 0.25 60 / 0.4)",
+          }}
+        >
+          🏎️
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span
+              className="text-xs font-black px-2 py-0.5 rounded-full tracking-widest uppercase"
+              style={{ background: "oklch(0.8 0.25 60)", color: "#000" }}
+            >
+              ⭐ SPONSORED
+            </span>
+            <span
+              className="text-xs font-mono"
+              style={{ color: "oklch(0.8 0.2 60)" }}
+            >
+              Featured Game
+            </span>
+          </div>
+          <h3
+            className="font-black text-base sm:text-lg"
+            style={{ color: "oklch(0.97 0.02 240)" }}
+          >
+            Cyber Racing Pro
+          </h3>
+          <p
+            className="text-xs mt-0.5"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            Sponsored by DIVYANSH GAMING Premium
+          </p>
+        </div>
+        <div
+          className="px-4 py-2 rounded-full text-xs font-black hidden sm:block"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.85 0.25 60), oklch(0.7 0.3 40))",
+            color: "#000",
+            boxShadow: "0 0 16px oklch(0.8 0.25 60 / 0.5)",
+          }}
+        >
+          Play Now
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            data-ocid="minigames.sponsored.dialog"
+          >
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setShowModal(false)}
+              onKeyDown={(e) => e.key === "Escape" && setShowModal(false)}
+              role="button"
+              tabIndex={-1}
+              aria-label="Close modal"
+            />
+            <motion.div
+              className="relative rounded-2xl p-6 max-w-sm w-full text-center"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              style={{
+                background: "oklch(0.1 0.04 270)",
+                border: "2px solid oklch(0.8 0.25 60 / 0.6)",
+                boxShadow: "0 0 40px oklch(0.8 0.25 60 / 0.25)",
+              }}
+            >
+              <div className="text-4xl mb-3">⭐</div>
+              <h3
+                className="text-xl font-black mb-2"
+                style={{ color: "oklch(0.85 0.25 60)" }}
+              >
+                Sponsored Game Slot
+              </h3>
+              <p
+                className="text-sm mb-5"
+                style={{ color: "rgba(255,255,255,0.6)" }}
+              >
+                This is a sponsored game slot.
+                <br />
+                <strong style={{ color: "oklch(0.85 0.25 60)" }}>
+                  Contact us to feature your game here!
+                </strong>
+              </p>
+              <button
+                type="button"
+                data-ocid="minigames.sponsored.close_button"
+                onClick={() => setShowModal(false)}
+                className="px-6 py-2.5 rounded-full text-sm font-black transition-all hover:scale-105"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.85 0.25 60), oklch(0.7 0.3 40))",
+                  color: "#000",
+                }}
+              >
+                Got It
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 export default function MiniGamesSection() {
   const [activeGame, setActiveGame] = useState<MiniGame | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -1401,6 +1551,17 @@ export default function MiniGamesSection() {
             80+ games across 4 categories — Action, Sport, Mind, and Stress
             Relief.
           </p>
+        </motion.div>
+
+        {/* Sponsored Game Slot */}
+        <motion.div
+          className="mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <SponsoredGameSlot />
         </motion.div>
 
         {/* Category Filters */}
