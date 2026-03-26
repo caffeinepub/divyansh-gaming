@@ -1335,6 +1335,398 @@ function MiniGameCard({
 }
 
 // ── MiniGamesSection ────────────────────────────────────────────────────────────
+
+// ── Advertise Here Card ───────────────────────────────────────────────────────
+function AdvertiseHereCard() {
+  const [showModal, setShowModal] = useState(false);
+  const [brandName, setBrandName] = useState("");
+  const [email, setEmail] = useState("");
+  const [budget, setBudget] = useState("\u20b9500/week");
+  const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const TIERS = [
+    {
+      name: "Starter",
+      price: "\u20b9500/week",
+      color: "oklch(0.72 0.18 200)",
+      perks: ["Logo on game card", "Play button link", "7-day slot"],
+    },
+    {
+      name: "Pro",
+      price: "\u20b91,500/week",
+      color: "oklch(0.75 0.22 295)",
+      perks: [
+        "Everything in Starter",
+        "Homepage banner strip",
+        "Discord shoutout",
+      ],
+    },
+    {
+      name: "Premium",
+      price: "\u20b95,000/week",
+      color: "oklch(0.85 0.25 60)",
+      perks: [
+        "Everything in Pro",
+        "Hero section feature",
+        "Social media shoutout",
+        "Pinned in tournaments",
+      ],
+    },
+  ];
+
+  const handleSubmit = () => {
+    if (!brandName.trim() || !email.trim()) return;
+    const text = encodeURIComponent(
+      `Hi, I want to sponsor a game slot on DIVYANSH GAMING. Brand: ${brandName}. Budget: ${budget}. Contact: ${email}.${message ? ` Message: ${message}` : ""}`,
+    );
+    window.open(`https://wa.me/919999999999?text=${text}`, "_blank");
+    setSubmitted(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setSubmitted(false);
+      setBrandName("");
+      setEmail("");
+      setBudget("\u20b9500/week");
+      setMessage("");
+    }, 2000);
+  };
+
+  return (
+    <>
+      <motion.div
+        data-ocid="minigames.advertise.card"
+        className="relative rounded-2xl p-5 overflow-hidden cursor-pointer"
+        style={{
+          background:
+            "linear-gradient(135deg, oklch(0.1 0.06 75 / 0.7), oklch(0.1 0.04 60 / 0.7))",
+          border: "2px solid oklch(0.85 0.28 75 / 0.6)",
+          boxShadow:
+            "0 0 40px oklch(0.85 0.28 75 / 0.18), 0 0 80px oklch(0.85 0.28 75 / 0.06)",
+        }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        onClick={() => {
+          playClick();
+          setShowModal(true);
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+      >
+        <div
+          className="absolute inset-0 opacity-15 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, oklch(0.85 0.28 75 / 0.4), transparent)",
+            backgroundSize: "200%",
+            animation: "bgShift 3s linear infinite",
+          }}
+        />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
+            style={{
+              background: "oklch(0.16 0.1 75)",
+              border: "2px solid oklch(0.85 0.28 75 / 0.5)",
+              boxShadow: "0 0 20px oklch(0.85 0.28 75 / 0.35)",
+            }}
+          >
+            \U0001f4e2
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span
+                className="text-xs font-black px-2.5 py-0.5 rounded-full tracking-widest uppercase"
+                style={{ background: "oklch(0.85 0.28 75)", color: "#000" }}
+              >
+                \U0001f4b0 SPONSOR THIS SLOT
+              </span>
+              <span
+                className="text-xs font-mono"
+                style={{ color: "oklch(0.78 0.2 75)" }}
+              >
+                From \u20b9500/week
+              </span>
+            </div>
+            <h3
+              className="font-black text-base"
+              style={{ color: "oklch(0.97 0.02 240)" }}
+            >
+              Reach 10,000+ Gamers Weekly
+            </h3>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "rgba(255,255,255,0.5)" }}
+            >
+              Feature your brand, game, or product on India&apos;s
+              fastest-growing gaming platform.
+            </p>
+          </div>
+          <div
+            className="px-4 py-2 rounded-full text-xs font-black shrink-0"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.88 0.28 75), oklch(0.75 0.3 55))",
+              color: "#000",
+              boxShadow: "0 0 18px oklch(0.85 0.28 75 / 0.5)",
+            }}
+          >
+            Get Started \u2192
+          </div>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            data-ocid="minigames.advertise.dialog"
+          >
+            <div
+              className="absolute inset-0 bg-black/85 backdrop-blur-md"
+              onClick={() => setShowModal(false)}
+              onKeyDown={(e) => e.key === "Escape" && setShowModal(false)}
+              role="button"
+              tabIndex={-1}
+              aria-label="Close"
+            />
+            <motion.div
+              className="relative rounded-2xl w-full max-w-lg overflow-hidden"
+              initial={{ scale: 0.88, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 240, damping: 22 }}
+              style={{
+                background: "oklch(0.09 0.025 270)",
+                border: "2px solid oklch(0.85 0.28 75 / 0.5)",
+                boxShadow:
+                  "0 0 60px oklch(0.85 0.28 75 / 0.2), 0 30px 80px black",
+                maxHeight: "90vh",
+                overflowY: "auto",
+              }}
+            >
+              <div
+                className="px-5 py-4 flex items-center justify-between sticky top-0 z-10"
+                style={{
+                  background: "oklch(0.11 0.05 75 / 0.95)",
+                  borderBottom: "1px solid oklch(0.22 0.06 75 / 0.4)",
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">\U0001f4e2</span>
+                  <span
+                    className="font-black text-base"
+                    style={{ color: "oklch(0.88 0.28 75)" }}
+                  >
+                    Sponsor This Slot
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  data-ocid="minigames.advertise.close_button"
+                  onClick={() => setShowModal(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{
+                    background: "oklch(0.16 0.04 270)",
+                    color: "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  \u2715
+                </button>
+              </div>
+
+              <div className="p-5 flex flex-col gap-5">
+                <div className="grid grid-cols-3 gap-3">
+                  {TIERS.map((tier) => (
+                    <button
+                      key={tier.name}
+                      type="button"
+                      className="rounded-xl p-3 flex flex-col gap-2 cursor-pointer transition-all hover:scale-[1.02] text-left w-full"
+                      style={{
+                        background:
+                          budget === tier.price
+                            ? `${tier.color}12`
+                            : "oklch(0.11 0.02 270)",
+                        border:
+                          budget === tier.price
+                            ? `1.5px solid ${tier.color}`
+                            : "1px solid oklch(0.2 0.04 270)",
+                        boxShadow:
+                          budget === tier.price
+                            ? `0 0 20px ${tier.color}30`
+                            : "none",
+                      }}
+                      onClick={() => setBudget(tier.price)}
+                    >
+                      <div
+                        className="font-black text-xs"
+                        style={{ color: tier.color }}
+                      >
+                        {tier.name}
+                      </div>
+                      <div
+                        className="font-black text-sm"
+                        style={{ color: "oklch(0.97 0.02 240)" }}
+                      >
+                        {tier.price}
+                      </div>
+                      <div className="flex flex-col gap-1 mt-1">
+                        {tier.perks.map((perk) => (
+                          <div
+                            key={perk}
+                            className="text-xs leading-tight"
+                            style={{ color: "rgba(255,255,255,0.45)" }}
+                          >
+                            \u2022 {perk}
+                          </div>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-mono tracking-widest uppercase"
+                      style={{ color: "rgba(255,255,255,0.4)" }}
+                      htmlFor="adv-brand"
+                    >
+                      Brand Name *
+                    </label>
+                    <input
+                      id="adv-brand"
+                      type="text"
+                      placeholder="Your brand or company name"
+                      value={brandName}
+                      onChange={(e) => setBrandName(e.target.value)}
+                      className="px-3 py-2.5 rounded-lg text-sm outline-none"
+                      style={{
+                        background: "oklch(0.13 0.03 270)",
+                        border: "1.5px solid oklch(0.25 0.05 270)",
+                        color: "oklch(0.95 0.03 270)",
+                      }}
+                      data-ocid="minigames.advertise.input"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-mono tracking-widest uppercase"
+                      style={{ color: "rgba(255,255,255,0.4)" }}
+                      htmlFor="adv-email"
+                    >
+                      Contact Email *
+                    </label>
+                    <input
+                      id="adv-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="px-3 py-2.5 rounded-lg text-sm outline-none"
+                      style={{
+                        background: "oklch(0.13 0.03 270)",
+                        border: "1.5px solid oklch(0.25 0.05 270)",
+                        color: "oklch(0.95 0.03 270)",
+                      }}
+                      data-ocid="minigames.advertise.input"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-mono tracking-widest uppercase"
+                      style={{ color: "rgba(255,255,255,0.4)" }}
+                      htmlFor="adv-message"
+                    >
+                      Message (optional)
+                    </label>
+                    <textarea
+                      id="adv-message"
+                      placeholder="Tell us about your brand or campaign goals..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={3}
+                      className="px-3 py-2.5 rounded-lg text-sm outline-none resize-none"
+                      style={{
+                        background: "oklch(0.13 0.03 270)",
+                        border: "1.5px solid oklch(0.25 0.05 270)",
+                        color: "oklch(0.95 0.03 270)",
+                      }}
+                      data-ocid="minigames.advertise.textarea"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className="flex items-center gap-2 rounded-xl p-3"
+                  style={{
+                    background: "oklch(0.12 0.03 270)",
+                    border: "1px solid oklch(0.2 0.04 270)",
+                  }}
+                >
+                  <span className="text-base">\u2709\ufe0f</span>
+                  <span
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.5)" }}
+                  >
+                    Or email us directly at
+                  </span>
+                  <span
+                    className="text-xs font-mono font-bold"
+                    style={{ color: "oklch(0.82 0.18 200)" }}
+                  >
+                    divyanshgaming@gmail.com
+                  </span>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    data-ocid="minigames.advertise.cancel_button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+                    style={{
+                      background: "oklch(0.14 0.03 270)",
+                      color: "rgba(255,255,255,0.5)",
+                      border: "1px solid oklch(0.24 0.05 270)",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    data-ocid="minigames.advertise.submit_button"
+                    onClick={handleSubmit}
+                    disabled={!brandName.trim() || !email.trim() || submitted}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-black transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40"
+                    style={{
+                      background: submitted
+                        ? "oklch(0.55 0.2 145 / 0.3)"
+                        : "linear-gradient(135deg, oklch(0.88 0.28 75), oklch(0.75 0.3 55))",
+                      color: submitted ? "oklch(0.72 0.2 145)" : "#000",
+                      boxShadow: submitted
+                        ? "none"
+                        : "0 0 20px oklch(0.85 0.28 75 / 0.4)",
+                    }}
+                  >
+                    {submitted
+                      ? "\u2713 Opening WhatsApp\u2026"
+                      : "U0001f4f1 Contact via WhatsApp"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 // ── Sponsored Game Slot ───────────────────────────────────────────────────────
 function SponsoredGameSlot() {
   const [showModal, setShowModal] = useState(false);
@@ -1562,6 +1954,17 @@ export default function MiniGamesSection() {
           transition={{ duration: 0.5 }}
         >
           <SponsoredGameSlot />
+        </motion.div>
+
+        {/* Advertise Here */}
+        <motion.div
+          className="mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <AdvertiseHereCard />
         </motion.div>
 
         {/* Category Filters */}
