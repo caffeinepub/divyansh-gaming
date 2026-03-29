@@ -11,6 +11,7 @@ import {
   Award,
   Bot,
   Brain,
+  Briefcase,
   Car,
   ChevronDown,
   ExternalLink,
@@ -49,6 +50,8 @@ import ComicStoriesSection from "./components/ComicStoriesSection";
 import CreatorAchievementsSection from "./components/CreatorAchievementsSection";
 import DailyChallenge from "./components/DailyChallenge";
 import DailyStreakSection from "./components/DailyStreakSection";
+import FreelancePortfolio from "./components/FreelancePortfolio";
+import GamingGear from "./components/GamingGear";
 import GuestPrompt from "./components/GuestPrompt";
 import InviteFriendsSection from "./components/InviteFriendsSection";
 import LanguageSelector from "./components/LanguageSelector";
@@ -497,6 +500,16 @@ function Navbar() {
       label: "Shop",
       href: "#premium-shop",
       icon: <ShoppingBag className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Gear",
+      href: "#gaming-gear",
+      icon: <Gamepad2 className="w-3.5 h-3.5" />,
+    },
+    {
+      label: "Hire Me",
+      href: "#hire-me",
+      icon: <Briefcase className="w-3.5 h-3.5" />,
     },
     {
       label: "AI Chat",
@@ -3436,6 +3449,8 @@ function InnerApp() {
         <SectionDivider />
         <PremiumShop />
         <SectionDivider />
+        <GamingGear />
+        <SectionDivider />
         <RetroGamesSection />
         <SectionDivider />
         <ComicStoriesSection />
@@ -3453,6 +3468,8 @@ function InnerApp() {
         <AchievementsSection />
         <SectionDivider />
         <CreatorAchievementsSection />
+        <SectionDivider />
+        <FreelancePortfolio />
         <SectionDivider />
         <AvatarSection />
         <SectionDivider />
