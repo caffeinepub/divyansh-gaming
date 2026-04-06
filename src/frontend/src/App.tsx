@@ -69,6 +69,7 @@ import Scene3D, { LobbyCanvas } from "./components/Scene3D";
 import ScoreSubmitModal from "./components/ScoreSubmitModal";
 import SoundToggle from "./components/SoundToggle";
 import SpaceShooter3D from "./components/SpaceShooter3D";
+import SpecialGamesSection from "./components/SpecialGamesSection";
 import SupportCreatorButton from "./components/SupportCreatorButton";
 import ThemeControls from "./components/ThemeControls";
 import TournamentBracket from "./components/TournamentBracket";
@@ -3446,6 +3447,8 @@ function InnerApp() {
         <RacingGameSection />
         <SectionDivider />
         <MiniGamesSection />
+        <SectionDivider />
+        <SpecialGamesSection />
         <SectionDivider />
         <PremiumShop />
         <SectionDivider />

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface CinematicIntroProps {
   onComplete: () => void;
@@ -841,8 +841,6 @@ export default function CinematicIntro({
     sessionStorage.getItem("intro_played") === "1";
 
   const [visible, setVisible] = useState(forceShow || !alreadyPlayed);
-  const [videoPhase, setVideoPhase] = useState(true);
-  const [videoFading, setVideoFading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [lineIndex, setLineIndex] = useState(0);
@@ -852,7 +850,6 @@ export default function CinematicIntro({
   const rafRef = useRef<number>(0);
   const lastSceneRef = useRef(-1);
   const soundEnabledRef = useRef(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Matrix rain characters
   const matrixCharsRef = useRef<string[]>(
@@ -870,40 +867,16 @@ export default function CinematicIntro({
     }, 800);
   };
 
-  // Transition from video phase to cinematic scenes with a smooth fade
-  const exitVideoPhase = useCallback(() => {
-    setVideoFading(true);
-    setTimeout(() => {
-      setVideoPhase(false);
-      setVideoFading(false);
-    }, 600);
-  }, []);
-
   // Check sound preference
   useEffect(() => {
     const pref = localStorage.getItem("sound_enabled");
     soundEnabledRef.current = pref !== "false";
   }, []);
 
-  // Attempt to play video; fallback to muted if browser blocks unmuted autoplay
-  useEffect(() => {
-    if (!visible || !videoRef.current) return;
-    const vid = videoRef.current;
-    vid.play().catch(() => {
-      vid.muted = true;
-      vid.play().catch(() => {
-        // If still fails (e.g. no media), skip video phase
-        exitVideoPhase();
-      });
-    });
-  }, [visible, exitVideoPhase]);
-
   // Reset and replay when forceShow changes to true
   useEffect(() => {
     if (forceShow) {
       setVisible(true);
-      setVideoPhase(true);
-      setVideoFading(false);
       setElapsed(0);
       setCurrentSceneIndex(0);
       setLineIndex(0);
@@ -914,9 +887,9 @@ export default function CinematicIntro({
   const completeRef = useRef(complete);
   completeRef.current = complete;
 
-  // Only run the cinematic RAF loop when NOT in video phase
+  // RAF loop for cinematic scenes
   useEffect(() => {
-    if (!visible || videoPhase) return;
+    if (!visible) return;
 
     startTimeRef.current = performance.now();
     audioCtxRef.current = getAudioCtx();
@@ -968,101 +941,14 @@ export default function CinematicIntro({
       cancelAnimationFrame(rafRef.current);
       audioCtxRef.current?.close();
     };
-  }, [visible, videoPhase]);
+  }, [visible]);
 
   if (!visible) return null;
 
   const currentScene = SCENES[currentSceneIndex];
   const progress = (elapsed / TOTAL_DURATION) * 100;
 
-  // ─── Video phase ────────────────────────────────────────────────────────────
-  if (videoPhase) {
-    return (
-      <>
-        <style>{`
-          @keyframes introFadeOut {
-            from { opacity: 1; }
-            to   { opacity: 0; }
-          }
-          @keyframes videoFadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-          }
-        `}</style>
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9998,
-            background: "#000",
-            animation: videoFading
-              ? "introFadeOut 0.6s ease forwards"
-              : "videoFadeIn 0.4s ease forwards",
-          }}
-        >
-          {/* biome-ignore lint/a11y/useMediaCaption: intro video is decorative cinematic content with no captions file available */}
-          <video
-            ref={videoRef}
-            src="/assets/intro-video.mp4"
-            autoPlay
-            playsInline
-            onEnded={exitVideoPhase}
-            style={{
-              position: "fixed",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              zIndex: 9999,
-              opacity: videoFading ? 0 : 1,
-              transition: "opacity 0.6s ease",
-            }}
-          />
-
-          {/* Skip button */}
-          <button
-            type="button"
-            data-ocid="intro.close_button"
-            onClick={exitVideoPhase}
-            style={{
-              position: "fixed",
-              top: 20,
-              right: 20,
-              padding: "8px 20px",
-              background: "transparent",
-              border: "1px solid oklch(0.82 0.18 200)",
-              color: "oklch(0.82 0.18 200)",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 13,
-              letterSpacing: "0.12em",
-              cursor: "pointer",
-              borderRadius: 4,
-              textTransform: "uppercase",
-              zIndex: 10000,
-              boxShadow: "0 0 10px oklch(0.82 0.18 200 / 0.4)",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "oklch(0.82 0.18 200 / 0.15)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                "0 0 20px oklch(0.82 0.18 200 / 0.7)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "transparent";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                "0 0 10px oklch(0.82 0.18 200 / 0.4)";
-            }}
-          >
-            SKIP ▶
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  // ─── Cinematic scenes phase (unchanged) ────────────────────────────────────
+  // ─── Cinematic scenes phase ─────────────────────────────────────────────────
   return (
     <>
       <style>{`
