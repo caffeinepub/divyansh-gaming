@@ -1,0 +1,43 @@
+// Version: 1.0.0
+type Game__42905640 =
+  {
+    description : Text;
+    genre : Text;
+    id : Nat;
+    imageUrl : Text;
+    rating : Nat;
+    title : Text
+  };
+type LeaderboardEntry__252692527 =
+  {
+    avatar : Text;
+    gameName : Text;
+    playerName : Text;
+    rank : Nat;
+    score : Nat;
+    timestamp : Text
+  };
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type NewsPost__136774649 =
+  {date : Text; id : Nat; summary : Text; title : Text};
+actor {
+  stable gamesList :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Game__42905640]];
+      var elementIndex : Nat__490723111
+    };
+  stable leaderboardList :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?LeaderboardEntry__252692527]];
+      var elementIndex : Nat__490723111
+    };
+  stable newsList :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?NewsPost__136774649]];
+      var elementIndex : Nat__490723111
+    }
+};

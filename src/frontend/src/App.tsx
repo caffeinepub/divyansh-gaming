@@ -38,7 +38,6 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Game, LeaderboardEntry, NewsPost } from "./backend.d";
 import AIChatBot from "./components/AIChatBot";
 import AboutContactSection from "./components/AboutContactSection";
 import AchievementToast from "./components/AchievementToast";
@@ -88,6 +87,7 @@ import { useProfile } from "./hooks/useProfile";
 import { useGetGames, useGetLeaderboard, useGetNews } from "./hooks/useQueries";
 import { playClick, playHover } from "./hooks/useSoundEffects";
 import { awardXP, getProfile } from "./hooks/useXPSystem";
+import type { Game, LeaderboardEntry, NewsPost } from "./types";
 
 // ─── Fallback game images ────────────────────────────────────────────────────
 const FALLBACK_GAME_IMAGES = [
@@ -542,20 +542,17 @@ function Navbar() {
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         {/* Logo */}
         <a href="#hero" className="flex items-center gap-2 group">
-          <div className="relative">
-            <Gamepad2
-              className="w-7 h-7 text-neon-cyan group-hover:scale-110 transition-transform duration-200"
-              style={{
-                filter: "drop-shadow(0 0 8px oklch(var(--neon-cyan) / 0.8))",
-              }}
-            />
-            <div
-              className="absolute inset-0 blur-md opacity-60"
-              style={{ background: "oklch(var(--neon-cyan) / 0.3)" }}
-            />
-          </div>
+          <img
+            src="/assets/uploads/divyansh-gaming-logo.png"
+            alt="DIVYANSH GAMING"
+            className="h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-200 sm:max-w-[120px]"
+            style={{
+              filter:
+                "drop-shadow(0 0 8px oklch(var(--neon-cyan) / 0.8)) drop-shadow(0 0 16px oklch(var(--neon-cyan) / 0.4))",
+            }}
+          />
           <span
-            className="font-display font-extrabold text-lg tracking-widest gradient-text-gaming"
+            className="hidden sm:inline font-display font-extrabold text-lg tracking-widest gradient-text-gaming"
             style={{ letterSpacing: "0.12em" }}
           >
             DIVYANSH GAMING

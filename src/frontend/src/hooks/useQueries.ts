@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Game, LeaderboardEntry, NewsPost } from "../backend.d";
+import type { Game, LeaderboardEntry, NewsPost } from "../types";
 import { useActor } from "./useActor";
 
 export function useGetGames() {

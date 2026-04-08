@@ -30,7 +30,6 @@ export interface NewsPost {
     summary: string;
 }
 export interface backendInterface {
-    _initializeAccessControlWithSecret(secret: string): Promise<void>;
     addGame(game: Game): Promise<void>;
     addLeaderboardEntry(entry: LeaderboardEntry): Promise<void>;
     addNewsPost(post: NewsPost): Promise<void>;

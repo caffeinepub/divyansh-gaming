@@ -1,0 +1,37 @@
+type NewsPost = 
+ record {
+   date: text;
+   id: nat;
+   summary: text;
+   title: text;
+ };
+type LeaderboardEntry = 
+ record {
+   avatar: text;
+   gameName: text;
+   playerName: text;
+   rank: nat;
+   score: nat;
+   timestamp: text;
+ };
+type Game = 
+ record {
+   description: text;
+   genre: text;
+   id: nat;
+   imageUrl: text;
+   rating: nat;
+   title: text;
+ };
+service : {
+  addGame: (game: Game) -> ();
+  addLeaderboardEntry: (entry: LeaderboardEntry) -> ();
+  addNewsPost: (post: NewsPost) -> ();
+  getGames: () -> (vec Game) query;
+  getLeaderboard: () -> (vec LeaderboardEntry) query;
+  getLeaderboardByRank: () -> (vec LeaderboardEntry) query;
+  getNews: () -> (vec NewsPost) query;
+  getTopLeaderboard: (limit: nat) -> (vec LeaderboardEntry) query;
+  submitScore: (playerName: text, score: nat, gameName: text, timestamp:
+   text, avatar: text) -> (vec LeaderboardEntry);
+}

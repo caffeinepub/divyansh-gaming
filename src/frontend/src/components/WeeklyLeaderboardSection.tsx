@@ -2,8 +2,8 @@ import { Crown, Timer, Trophy } from "lucide-react";
 // ─── Weekly Leaderboard Section ────────────────────────────────────────────────
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
-import type { LeaderboardEntry } from "../backend.d";
 import { useGetLeaderboard } from "../hooks/useQueries";
+import type { LeaderboardEntry } from "../types";
 
 const FALLBACK_LEADERBOARD: LeaderboardEntry[] = [
   {

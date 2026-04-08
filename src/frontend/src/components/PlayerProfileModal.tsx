@@ -1,7 +1,7 @@
 import { Gamepad2, Medal, Star, Target, Trophy, X, Zap } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo } from "react";
-import type { LeaderboardEntry } from "../backend.d";
+import type { LeaderboardEntry } from "../types";
 
 interface PlayerProfileModalProps {
   playerName: string | null;

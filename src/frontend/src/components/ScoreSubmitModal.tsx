@@ -7,8 +7,8 @@ import {
 import { CheckCircle, Loader2, Trophy } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import type { LeaderboardEntry } from "../backend.d";
 import { useSubmitScore } from "../hooks/useQueries";
+import type { LeaderboardEntry } from "../types";
 
 export interface ScoreSubmitModalProps {
   open: boolean;
